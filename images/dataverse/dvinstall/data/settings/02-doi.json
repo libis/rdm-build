@@ -1,0 +1,21 @@
+{
+  "title": "DOI setup",
+  "data": [
+    {
+      "name": ":DoiProvider",
+      "value": "DoiProvider"
+    },
+    {
+      "name": ":Protocol",
+      "value": "doi"
+    },
+    {
+      "name": ":Authority",
+      "value": "10.5072"
+    },
+    {
+      "name": ":Shoulder",
+      "value": "FK2/"
+    }
+  ]
+}

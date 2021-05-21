@@ -1,0 +1,13 @@
+{
+  "title": "allow internal signup",
+  "data": [
+    {
+      "name": ":AllowSignUp",
+      "value": "yes"
+    },
+    {
+      "name": ":SignUpUrl",
+      "value": "/dataverseuser.xhtml?editMode=CREATE"
+    }
+  ]
+}

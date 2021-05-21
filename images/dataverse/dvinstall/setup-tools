@@ -1,0 +1,71 @@
+OVERWRITE="${HOME_DIR}/custominstall/overwrite"
+
+obj_name() {
+  echo $(basename $1) | sed -E -e 's#^[[:digit:]]+-##; s#\.\w+$##'
+}
+
+obj_first() {
+  echo "$1" | sed -E -e 's#^(\w+)-.*$#\1#'
+}
+
+obj_second() {
+  echo "${1#*-}"
+}
+
+obj_last() {
+  echo $1 | sed -E -e 's#^.*-(\w+)$#\1#'
+}
+
+custom_dir() {
+  local dir=$1
+  echo "${HOME_DIR}/custominstall/data/$dir"
+}
+
+data_dir() {
+  local dir=$1
+  [ -d "${OVERWRITE}/$dir" ] && echo "${OVERWRITE}/$dir" || echo "${DVINSTALL_DIR}/data/$dir"
+}
+
+data_file() {
+  local file=$1
+  [ -f "${OVERWRITE}/$file" ] && echo "${OVERWRITE}/$file" || echo "${DVINSTALL_DIR}/data/$file"
+}
+
+obj_single() {
+  local url=$1
+  local file=$2
+  local content=${3:-'application/json'}
+  local obj="$(obj_name $file)"
+  if [[ "$url" =~ '${/}' ]]; then
+    local path=''
+    while [[ "${obj}" =~ - ]]; do
+      path="${path}$(obj_first $obj)/"
+      obj="$(obj_second $obj)"
+    done
+    url="${url/'${/}'/$path}"
+  fi
+  echo "  ... $(obj_name $obj)"
+  api POST "$url" --data-binary @$file -H "Content-type: $content"
+}
+
+obj_loop() {
+  local url=$1
+  local dir=$2
+  local files=${3:-'*.json'}
+  local content=${4:-'application/json'}
+  for f in "$(data_dir $dir)"/$files "$(custom_dir $dir)"/$files; do
+    obj_single "$url" "$f" "$content"
+  done
+}
+
+settings_loop() {
+  local url=$1
+  local dir=$2
+  local files=${3:-'*.json'}
+  for f in "$(data_dir $dir)"/$files "$(custom_dir $dir)"/$files ; do
+    local title=$(jq -r '.title' $f)
+    [ ! "$title" = "" ] && echo "  ... $(obj_name $f)" && \
+      jq -r '.data[]|[.name, .value]|@tsv' $f | \
+      while IFS=$'\t' read -r name value; do api PUT "$url/$name" -d "$value"; done
+  done
+}

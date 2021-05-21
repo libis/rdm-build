@@ -1,0 +1,5 @@
+/config
+.*.swp
+dvinstall.zip
+/dvinstall/
+.env

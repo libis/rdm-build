@@ -1,0 +1,93 @@
+################################################################################
+# This script configures varaibles used in other shell scripts.
+################################################################################
+
+# Fail on any error
+set -euo pipefail
+
+# required for bash for loop if no files found
+shopt -s nullglob
+
+# Include some sane defaults
+. "${SCRIPT_DIR}/default.config"
+
+# Api defaults to locked state
+API_LOCKED=${API_LOCKED:-1}
+export API_LOCKED
+
+# Dataverse URL
+export DATAVERSE_SERVICE_HOST="${DATAVERSE_SERVICE_HOST:-"dataverse"}"
+export DATAVERSE_SERVICE_PORT_HTTP="${DATAVERSE_SERVICE_PORT_HTTP:-"8080"}"
+export DATAVERSE_URL="${DATAVERSE_URL:-"http://${DATAVERSE_SERVICE_HOST}:${DATAVERSE_SERVICE_PORT_HTTP}"}"
+
+# Solr URL
+export SOLR_SERVICE_HOST="${SOLR_SERVICE_HOST:-"solr"}"
+export SOLR_SERVICE_PORT_HTTP="${SOLR_SERVICE_PORT_HTTP:-"8983"}"
+export SOLR_URL="${SOLR_URL:-"http://${SOLR_SERVICE_HOST}:${SOLR_SERVICE_PORT_HTTP}"}"
+
+# Check and load secrets
+# if [ ! -s "${SECRETS_DIR}/db/password" ]; then
+#   echo "No database password present. Failing."
+#   exit 126
+# fi
+# export POSTGRES_PASSWORD=$(cat "${SECRETS_DIR}/db/password")
+
+if [ ! -s "${SECRETS_DIR}/api/key" ]; then
+  echo "No API key present. Failing."
+  exit 126
+fi
+export API_KEY=$(cat "${SECRETS_DIR}/api/key")
+
+if [ ! -s "${SECRETS_DIR}/api/userskey" ]; then
+  echo "No Users API key present. Failing."
+  exit 126
+fi
+export API_USERSKEY=$(cat "${SECRETS_DIR}/api/userskey")
+
+# Load dataverseAdmin password if present
+ADMIN_PASSWORD='admin'
+if [ "${ADMIN_PASSWORD}" = "" ] && [ -s "${SECRETS_DIR}/admin/password" ]; then
+  echo "Loading admin password from secret file."
+  ADMIN_PASSWORD=$(cat "${SECRETS_DIR}/admin/password")
+fi
+export ADMIN_PASSWORD
+
+check_reply () {
+  echo "$REPLY" | jq -rM '.status' 2>/dev/null || echo -e 'FAILED\n' "$REPLY"
+}
+
+api_get () {
+  api_call GET "$1" 
+}
+
+json_post () {
+  json_call POST "$@"
+}
+
+json_put () {
+  json_call PUT "$@"
+}
+
+json_delete () {
+  json_call DELETE "$@"
+}
+
+api_call () {
+  # $1    Method
+  # $2    api path
+  # $@:3  other curl args
+  local url="${DATAVERSE_URL}/api/${2}"
+  local X='?' && [[ "$2" == *"$X"* ]] && X='&'
+  [[ ${API_LOCKED} -gt 0 ]] && url="${url}${X}unblock-key=${API_KEY}"
+  REPLY=$(curl -sS -X ${1} "${@:3}" "$url")
+}
+
+json_call () {
+  api_call $1 $2 -H "Content-type:application/json" "${@:3}"
+}
+
+api() {
+  api_call "$@"
+  STATUS=$(echo "${REPLY}" | jq -r '.status' 2>/dev/null || echo 'ERROR')
+  [[ "${STATUS}" == "OK" ]] || echo "API call '${2}' failed: $(echo "${REPLY}" | jq -r '.message' 2>/dev/null || echo "${REPLY}")"
+}

@@ -1,0 +1,6 @@
+/etc/pki/rdm/ssl.crt false root:root 0644
+/etc/pki/rdm/ssl.key false root:root 0600
+/etc/pki/rdm/sp-encrypt-cert.pem false shibd:shibd 0644
+/etc/pki/rdm/sp-encrypt-key.pem false shibd:shibd 0600
+/etc/pki/rdm/sp-signing-cert.pem false shibd:shibd 0644
+/etc/pki/rdm/sp-signing-key.pem false shibd:shibd 0600
