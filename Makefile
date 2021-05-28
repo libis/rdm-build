@@ -28,6 +28,8 @@ help: ## Show list and info on common tasks
 
 build: build-index build-mail build-proxy build-dataverse ## Build all custom docker images
 
+push: push-index push-mail push-proxy push-dataverse ## Publish all custom docker images
+
 # DEVELOPMENT TASKS
 ######################################################################################################################
 
@@ -104,3 +106,15 @@ build-proxy: ## Create the docker image for the Shibboleth Service Provider
 	echo "Building Proxy image ..."
 	docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
 		-t $(PROXY_IMAGE_TAG) ./images/proxy
+
+push-dataverse: ## Publish the docker image for the dataverse service
+	docker push $(DATAVERSE_IMAGE_TAG)
+
+push-index: ## Publish the docker image for the index service (Solr)
+	docker push $(SOLR_IMAGE_TAG)
+
+push-mail: ## Publish the docker image for the mail catcher service
+	docker push $(MAIL_IMAGE_TAG)
+
+push-proxy: ## Publish the docker image for the Shibboleth Service Provider
+	docker push $(PROXY_IMAGE_TAG)
