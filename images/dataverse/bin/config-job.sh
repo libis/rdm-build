@@ -9,7 +9,7 @@ set -euo pipefail
 
 . "${SCRIPT_DIR}/config"
 
-echo -e "\nRunning configuration job for Dataverse at ${DATAVERSE_URL}."
+echo -e "Running configuration job for Dataverse."
 
 # Set Database options based on environment variables db_XXX from ConfigMap
 echo "Setting Database options"

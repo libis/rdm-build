@@ -704,6 +704,7 @@
             title^130
             subject^120
             keyword^110
+            topicClassValue^100
             dsDescriptionValue^90
             authorAffiliation^80
             publicationCitation^60
@@ -723,6 +724,7 @@
             title^75
             subject^75
             keyword^75
+            topicClassValue^75
             dsDescriptionValue^75
             authorAffiliation^75
             publicationCitation^75

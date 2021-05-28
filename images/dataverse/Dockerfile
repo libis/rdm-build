@@ -6,7 +6,7 @@ USER root
 
 # Install software
 RUN apt-get update -qqy; \
-    DEBIAN_FRONTEND=noninteractive apt-get -qq --no-install-recommends install -qqy jq imagemagick wget curl less unzip; \
+    DEBIAN_FRONTEND=noninteractive apt-get -qq --no-install-recommends install -qqy jq imagemagick wget curl less unzip postgresql-client; \
     rm -rf /var/lib/apt/lists/*
 
 # Change application user and group id

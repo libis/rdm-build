@@ -71,14 +71,9 @@ fi
 echo
 
 ### Processing field entries
-
-### Processing field entries
-# echo "Writing ${TARGET}/schema_dv_mdb_fields.xml"
-# echo "<fields>" > ${TARGET}/schema_dv_mdb_fields.xml
-# cat ${TMPFILE} | grep ".*<field" >> ${TARGET}/schema_dv_mdb_fields.xml
-# echo "</fields>" >> ${TARGET}/schema_dv_mdb_fields.xml
 echo "Replacing field lines"
 START='<!-- Dynamic Dataverse fields from http://localhost:8080/api/admin/index/solr/schema -->'
+INCL='<xi:include href="schema_dv_mdb_fields.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />'
 END='<!-- End of Dynamic Dataverse fields -->'
 
 ### -- create temp file with new content
@@ -86,6 +81,9 @@ TMPF=`mktemp`
 echo "$START" > ${TMPF}
 cat ${TMPFILE} | grep ".*<field" >> ${TMPF}
 echo "$END" >> ${TMPF}
+
+### -- first replace INCL with END if it is still there
+sed -e 's@'"$INCL"'@'"$END"'@' -i ${TARGET}/schema.xml
 
 ### -- replace START->END with content of temp file
 sed -e '\@'"$START"'@,\@'"$END"'@!b' -e '\@'"$END"'@!d;r '"$TMPF" -e 'd' -i ${TARGET}/schema.xml

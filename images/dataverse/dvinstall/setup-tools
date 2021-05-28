@@ -31,21 +31,28 @@ data_file() {
   [ -f "${OVERWRITE}/$file" ] && echo "${OVERWRITE}/$file" || echo "${DVINSTALL_DIR}/data/$file"
 }
 
+url_path() {
+  local url=$1
+  local file=$2
+  local obj="$(obj_name $file)"
+  local regexp='\$\{/[[:digit:]]+\}'
+  if [[ "$url" =~ $regexp ]]; then
+    IFS='-' read -r -a path <<< "$(obj_name $file)"
+    for index in "${!path[@]}"
+    do
+      url=$(echo $url | sed -E 's&\$\{/'"$index"'\}&'"${path[index]}"'&g')
+    done
+  fi
+  echo "$url"
+}
+
 obj_single() {
   local url=$1
   local file=$2
   local content=${3:-'application/json'}
-  local obj="$(obj_name $file)"
-  if [[ "$url" =~ '${/}' ]]; then
-    local path=''
-    while [[ "${obj}" =~ - ]]; do
-      path="${path}$(obj_first $obj)/"
-      obj="$(obj_second $obj)"
-    done
-    url="${url/'${/}'/$path}"
-  fi
-  echo "  ... $(obj_name $obj)"
-  api POST "$url" --data-binary @$file -H "Content-type: $content"
+  local url="$(url_path "$url" "$file")"
+  echo "  ... $(obj_name $file)"
+  api POST "$url" --data-binary @$file -H "Content-type: $content" "${@:4}"
 }
 
 obj_loop() {
@@ -54,7 +61,7 @@ obj_loop() {
   local files=${3:-'*.json'}
   local content=${4:-'application/json'}
   for f in "$(data_dir $dir)"/$files "$(custom_dir $dir)"/$files; do
-    obj_single "$url" "$f" "$content"
+    obj_single "$url" "$f" "$content" "${@:5}"
   done
 }
 

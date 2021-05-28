@@ -8,4 +8,4 @@ api PUT 'admin/settings/:BlockedApiPolicy' -d 'unblock-key'
 api PUT 'admin/settings/:BlockedApiEndpoints' -d 'admin,builtin-users'
 echo
 
-export API_LOCKED=1
+export API_LOCAL="false"

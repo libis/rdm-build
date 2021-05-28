@@ -7,12 +7,15 @@
 # creates root dataverse and admin account.
 ################################################################################
 
+# Fail on any error
+set -euo pipefail
+
 # Load configuration
 . "${SCRIPT_DIR}/config"
 
-# Set BuiltinUsers Key
-"${SCRIPT_DIR}/builtin-users-key.sh"
-"${SCRIPT_DIR}/security-local.sh"
+# Set API local only and BuiltinUsers Key
+api_only_local
+builtin_enable
 
 # Initialize common data structures to make Dataverse usable
 "${DVINSTALL_DIR}/setup-all.sh"
@@ -27,6 +30,6 @@ api PUT 'admin/settings/:SolrHostColonPort' -d "${SOLR_SERVICE_HOST}:${SOLR_SERV
 cp "${DVINSTALL_DIR}/jhove"* "${DOMAIN_DIR}/config/"
 sed -i "${DOMAIN_DIR}/config/jhove.conf" -e "s#file://.*/jhoveConfig\.xsd#file://${DOMAIN_DIR}/config/jhoveConfig.xsd#g"
 
-# Configure security settings
-"${SCRIPT_DIR}/security-token.sh"
-"${SCRIPT_DIR}/builtin-users-disable.sh"
+# Configure final security settings
+api_by_token
+builtin_disable
