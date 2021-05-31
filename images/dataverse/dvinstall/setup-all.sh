@@ -30,7 +30,7 @@ echo
 echo "Setting up the admin user (and as superuser)"
 obj_single "builtin-users?password=${ADMIN_PASSWORD}&key=${API_USERSKEY}" "$(data_file user-admin.json)"
 adminKey="$(echo "${REPLY}" | jq .data.apiToken | tr -d \")"
-echo "admin user key: ${adminKey}"
+echo "      - API token: ${adminKey}"
 api POST "admin/superuser/$(jq -r '.userName' $(data_file user-admin.json))"
 echo
 
