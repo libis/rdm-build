@@ -26,9 +26,9 @@ help: ## Show list and info on common tasks
 	@echo "$$HELPTEXT"
 	$(call help-targets, $(MAKEFILE_LIST))
 
-build: build-index build-mail build-proxy build-dataverse ## Build all custom docker images
+build: build-index build-mail build-proxy build-dataverse build-tools ## Build all custom docker images
 
-push: push-index push-mail push-proxy push-dataverse ## Publish all custom docker images
+push: push-index push-mail push-proxy push-dataverse build-tools ## Publish all custom docker images
 
 # DEVELOPMENT TASKS
 ######################################################################################################################
@@ -107,6 +107,11 @@ build-proxy: ## Create the docker image for the Shibboleth Service Provider
 	docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
 		-t $(PROXY_IMAGE_TAG) ./images/proxy
 
+build-tools: ## Create the docker image for the Tools service
+	echo "Building Tools image ..."
+	docker build -q --build-arg APP_USER_ID=$(USER_ID) --build-arg APP_GROUP_ID=$(GROUP_ID) \
+		-t $(TOOLS_IMAGE_TAG) ./images/tools
+
 push-dataverse: ## Publish the docker image for the dataverse service
 	docker push $(DATAVERSE_IMAGE_TAG)
 
@@ -118,3 +123,6 @@ push-mail: ## Publish the docker image for the mail catcher service
 
 push-proxy: ## Publish the docker image for the Shibboleth Service Provider
 	docker push $(PROXY_IMAGE_TAG)
+
+push-tools: ## Publish the docker image for the Tools service
+	docker push $(TOOLS_IMAGE_TAG)
