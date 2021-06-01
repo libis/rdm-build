@@ -1,4 +1,8 @@
-OVERWRITE="${HOME_DIR}/custominstall/overwrite"
+CUSTOM_INSTALL=${CUSTOM_INSTALL:-/tmp}
+OVERWRITE_DIR="${OVERWRITE_DIR:-${CUSTOM_INSTALL}/overwrite}"
+CUSTOM_DATA="${CUSTOM_DATA:-${CUSTOM_INSTALL}/data}"
+
+[[ -f ${DOMAIN_DIR}/.adminKey ]] && export adminKey="$(cat ${DOMAIN_DIR}/.adminKey)"
 
 obj_name() {
   echo $(basename $1) | sed -E -e 's#^[[:digit:]]+-##; s#\.\w+$##'
@@ -18,17 +22,17 @@ obj_last() {
 
 custom_dir() {
   local dir=$1
-  echo "${HOME_DIR}/custominstall/data/$dir"
+  echo "${CUSTOM_DATA}/$dir"
 }
 
 data_dir() {
   local dir=$1
-  [ -d "${OVERWRITE}/$dir" ] && echo "${OVERWRITE}/$dir" || echo "${DVINSTALL_DIR}/data/$dir"
+  [ -d "${OVERWRITE_DIR}/$dir" ] && echo "${OVERWRITE_DIR}/$dir" || echo "${DVINSTALL_DIR}/data/$dir"
 }
 
 data_file() {
   local file=$1
-  [ -f "${OVERWRITE}/$file" ] && echo "${OVERWRITE}/$file" || echo "${DVINSTALL_DIR}/data/$file"
+  [ -f "${OVERWRITE_DIR}/$file" ] && echo "${OVERWRITE_DIR}/$file" || echo "${DVINSTALL_DIR}/data/$file"
 }
 
 url_path() {
@@ -46,7 +50,7 @@ url_path() {
   echo "$url"
 }
 
-obj_single() {
+datafile() {
   local url=$1
   local file=$2
   local content=${3:-'application/json'}
@@ -55,13 +59,13 @@ obj_single() {
   api POST "$url" --data-binary @$file -H "Content-type: $content" "${@:4}"
 }
 
-obj_loop() {
+datafiles_loop() {
   local url=$1
   local dir=$2
   local files=${3:-'*.json'}
   local content=${4:-'application/json'}
   for f in "$(data_dir $dir)"/$files "$(custom_dir $dir)"/$files; do
-    obj_single "$url" "$f" "$content" "${@:5}"
+    datafile "$url" "$f" "$content" "${@:5}"
   done
 }
 
@@ -69,10 +73,18 @@ settings_loop() {
   local url=$1
   local dir=$2
   local files=${3:-'*.json'}
-  for f in "$(data_dir $dir)"/$files "$(custom_dir $dir)"/$files ; do
+  for f in "$(data_dir $dir)"/$files "$(custom_dir)"/$files; do
     local title=$(jq -r '.title' $f)
     [ ! "$title" = "" ] && echo "  ... $(obj_name $f)" && \
       jq -r '.data[]|[.name, .value]|@tsv' $f | \
-      while IFS=$'\t' read -r name value; do api PUT "$url/$name" -d "$value"; done
+      while IFS=$'\t' read -r name value; do \
+        api PUT "$url/$name" -d "$value"; \
+      done
   done
+}
+
+superAdmin() {
+  URL_HEADERS=("X-Dataverse-key: ${adminKey}")
+  "$@"
+  URL_HEADERS=()
 }

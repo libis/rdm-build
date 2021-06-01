@@ -67,19 +67,28 @@ json_delete () {
   json_call DELETE "$@"
 }
 
+URL_HEADERS=()
+
 api_call () {
   # $1    Method
   # $2    api path
   # $@:3  other curl args
+  
+  local xtra_opts=()
+  for h in "${URL_HEADERS[@]}"; do
+    xtra_opts+=("-H" "$h")
+  done
+
   local url="${DATAVERSE_URL}/api/${2}"
-  local X='?' && [[ "$2" == *"$X"* ]] && X='&'
-  [[ "${API_LOCAL:-''}" == "true" ]] || url="${url}${X}unblock-key=${API_KEY}"
-  [[ "${API_DEBUG:-''}" == "true" ]] && echo " -- API call: ${1} ${@:3} $url"
-  REPLY=$(curl -sS -X ${1} "${@:3}" "$url")
+  local X='?' && [[ "$2" =~ \? ]] && X='&'
+  [[ "${API_LOCAL:-x}" == "true" ]] || url="${url}${X}unblock-key=${API_KEY}"
+  [[ "${API_DEBUG:-x}" == "true" ]] && echo " -- DEBUG: API call: ${1} ${@:3} ${xtra_opts[@]} $url" || true
+  REPLY=$(curl -sS -X ${1} "${@:3}" "${xtra_opts[@]}" "$url")
+  [[ "${API_DEBUG:-x}" == "true" ]] && echo " -- DEBUG: $REPLY" || true
 }
 
 json_call () {
-  api_call $1 $2 -H "Content-type:application/json" "${@:3}"
+  api_call $1 $2 -H "Content-type: application/json" "${@:3}"
 }
 
 api() {
@@ -88,7 +97,7 @@ api() {
   [[ "${STATUS}" == "OK" ]] && return 0
   local MESSAGE=$(jq -n "${REPLY}" | jq -r '.message' 2>/dev/null)
   [[ "${MESSAGE}" == "null" ]] && MESSAGE="${REPLY}"
-  echo "API call '${2}' failed: ${MESSAGE}"
+  echo "      -> API call '${2}' failed: ${MESSAGE}"
   return -1
 }
 
@@ -115,9 +124,9 @@ api_by_token() {
 
 api_only_local() {
   echo "Restricting admin API to localhost only"
-  api DELETE 'admin/settings/:BlockedApiKey'
-  api PUT 'admin/settings/:BlockedApiPolicy' -d 'localhost-only'
   api PUT  'admin/settings/:BlockedApiEndpoints' -d 'admin,builtin-users'
+  api PUT 'admin/settings/:BlockedApiPolicy' -d 'localhost-only'
+  api DELETE 'admin/settings/:BlockedApiKey'
   export API_LOCAL="true"
   echo
 }

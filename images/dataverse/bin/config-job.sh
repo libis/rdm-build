@@ -19,10 +19,10 @@ if `env | grep -Ee '^db_' &>/dev/null`; then
       echo -e "  ... ${KEY}=${v}"
       if [[ -z "${v}" ]]; then
         # empty var => delete the setting
-        api DELETE "admin/settings/${KEY}?unblock-key=${API_KEY}"
+        api DELETE "admin/settings/${KEY}"
       else
         # set the setting
-        api PUT "admin/settings/${KEY}?unblock-key=${API_KEY}" -d "${v}"
+        api PUT "admin/settings/${KEY}" -d "${v}"
       fi
   done
 else
