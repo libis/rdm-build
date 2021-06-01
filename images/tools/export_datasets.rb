@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require 'dotenv/load'
 require 'dataverse'
 require 'fileutils'
@@ -5,9 +7,11 @@ require 'fileutils'
 root_dv = Dataverse::Dataverse.id('kul')
 
 root_dv.each_dataset do |ds|
+  next unless ds.published
   data = ds.export_metadata('rdm')
-  filename = "data/exports/#{ds['identifier']}.json"
-  FileUtils.mkdir_p(File.dirname(filename))
+  filename = "exports/#{ds['identifier']}.json"
+  filepath = "#{ENV['DATA_DIR']}/#{filename}"
+  FileUtils.mkdir_p(File.dirname(filepath))
   puts "#{filename}"
-  File.open(filename, 'wt') { |f| f.write JSON.pretty_generate(data) }
+  File.open(filepath, 'wt') { |f| f.write JSON.pretty_generate(data) }
 end

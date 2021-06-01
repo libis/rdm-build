@@ -16,9 +16,9 @@ RUN chmod +x /usr/bin/docker-entrypoint.sh \
 
 WORKDIR ${APP_PATH}
 
-COPY --chown=${APP_USER}:${APP_GROUP} Gemfile* export_datasets.rb setup.sh ${APP_PATH}/
+COPY --chown=${APP_USER}:${APP_GROUP} Gemfile* *.rb *.sh ${APP_PATH}/
 
-RUN bundle install
+RUN bundle install && chmod +x *.rb *.sh
 
 USER ${APP_USER}
 
