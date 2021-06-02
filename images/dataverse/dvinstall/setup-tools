@@ -73,7 +73,7 @@ settings_loop() {
   local url=$1
   local dir=$2
   local files=${3:-'*.json'}
-  for f in "$(data_dir $dir)"/$files "$(custom_dir)"/$files; do
+  for f in "$(data_dir $dir)"/$files "$(custom_dir $dir)"/$files; do
     local title=$(jq -r '.title' $f)
     [ ! "$title" = "" ] && echo "  ... $(obj_name $f)" && \
       jq -r '.data[]|[.name, .value]|@tsv' $f | \
