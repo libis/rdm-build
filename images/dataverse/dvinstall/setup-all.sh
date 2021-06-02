@@ -35,9 +35,7 @@ api POST "admin/superuser/$(jq -r '.userName' $(data_file user-admin.json))"
 echo
 
 echo "Setting up other builtin users"
-PASSWORD="$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 13 | tee "${DOMAIN_DIR}/.default_user_password")"
-echo "   Default builtin user password: '${PASSWORD}'" 
-datafiles_loop "builtin-users?password=${PASSWORD}&key=${API_USERSKEY}" users
+datafiles_loop "builtin-users?password=${ADMIN_PASSWORD}&key=${API_USERSKEY}" users
 echo
 
 echo "Setting up the root Dataverse collection"
