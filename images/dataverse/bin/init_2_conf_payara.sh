@@ -95,14 +95,7 @@ EOF
 
   # JavaMail
   echo "INFO: Defining JavaMail."
-  MAIL_OPTS="--mailhost ${MAIL_SERVER} --mailuser ${MAIL_USER:-dataversenotify} --fromaddress ${MAIL_FROMADDRESS}"
-  MAIL_PROP="--property mail.smtp.auth=${MAIL_AUTH:-false}:mail.smtp.password=${MAIL_PWD:-password}"
-  MAIL_PROP="${MAIL_PROP}:mail-smtp-starttls-enable=${MAIL_TLS:-false}"
-  MAIL_PROP="${MAIL_PROP}:mail.smtp.port=${MAIL_PORT:-25}:mail.smtp.socketFactory.port=${MAIL_SOCKET_PORT:-25}"
-  MAIL_PROP="${MAIL_PROP}:mail.smtp.socketFactory.fallback=${MAIL_SOCKET:-false}"
-  [ "${MAIL_CLASS}" != "" ] && MAIL_PROP="${MAIL_PROP}:mail.smtp.socketFactory.class=${MAIL_CLASS}"
-  echo "create-javamail-resource ${MAIL_OPTS} ${MAIL_PROP} mail/notifyMailSession" >> "${DV_POSTBOOT}"
-
+  echo "create-javamail-resource --mailhost=${MAIL_SERVER} --mailuser=dataversenotify --fromaddress=${MAIL_FROMADDRESS} mail/notifyMailSession" >> "${DV_POSTBOOT}"
   echo "INFO: defining miscellaneous configuration options."
   # Timer data source
   # echo "create-jvm-options '-Ddataverse.timerServer=true'" >> ${DV_POSTBOOT}
@@ -137,14 +130,18 @@ EOF
     echo "create-system-properties ${KEY}=${v}" >> "${DV_POSTBOOT}"
   done
 
-  # 4.1 Add the commands to the existing preboot file
+  # 4. Run custom commands, if available
+  [ -f "${HOME_DIR}/custominstall/preboot" ] && cat "${HOME_DIR}/custominstall/preboot" >> "${DV_PREBOOT}"
+  [ -f "${HOME_DIR}/custominstall/postboot" ] && cat "${HOME_DIR}/custominstall/postboot" >> "${DV_POSTBOOT}"
+
+  # 5.1 Add the commands to the existing preboot file
   echo "$(cat ${DV_PREBOOT})" >> "${PREBOOT_COMMANDS}"
   echo "preboot contains the following commands:"
   echo "--------------------------------------------------"
   cat "${PREBOOT_COMMANDS}"
   echo "--------------------------------------------------"
 
-  # 4.2 Add the commands to the existing postboot file, but insert BEFORE deployment
+  # 5.2 Add the commands to the existing postboot file, but insert BEFORE deployment
   echo "$(cat ${DV_POSTBOOT} | cat - "${POSTBOOT_COMMANDS}" )" > "${POSTBOOT_COMMANDS}"
   echo "postboot contains the following commands:"
   echo "--------------------------------------------------"
