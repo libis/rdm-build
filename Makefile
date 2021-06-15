@@ -1,4 +1,4 @@
-include .env
+include env.$(RDM_STAGE)
 export
 
 .SILENT:
@@ -28,7 +28,7 @@ help: ## Show list and info on common tasks
 
 build: build-index build-mail build-proxy build-dataverse build-tools ## Build all custom docker images
 
-push: push-index push-mail push-proxy push-dataverse build-tools ## Publish all custom docker images
+push: push-index push-mail push-proxy push-dataverse push-tools ## Publish all custom docker images
 
 # DEVELOPMENT TASKS
 ######################################################################################################################
@@ -85,7 +85,7 @@ diff:
 	  do echo -n " - $$f: "; diff -bq images/solr/scripts/$$f dvinstall/$$f &>/dev/null && echo "OK" || echo "!! DIFFERENT !!"; done || true
 	
 build-dataverse: ## Create the docker image for the dataverse service
-	echo "Building Dataverse image ..."
+	echo "Building Dataverse image '$(DATAVERSE_IMAGE_TAG)'..."
 	if [[ ! -f images/dataverse/dvinstall/dataverse.war ]] || ! cmp -s images/dataverse/dvinstall/dataverse.war dvinstall/dataverse.war; then \
 		echo "Copying dataverse.war ..."; cp dvinstall/dataverse.war images/dataverse/dvinstall/dataverse.war; fi
 	docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
@@ -93,22 +93,22 @@ build-dataverse: ## Create the docker image for the dataverse service
 			-t $(DATAVERSE_IMAGE_TAG) ./images/dataverse
 
 build-index: ## Create the docker image for the index service (Solr)
-	echo "Building Index image ..."
+	echo "Building Index image '$(SOLR_IMAGE_TAG)'..."
 	docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
 			--build-arg SOLR_VERSION=$(SOLR_VERSION) \
 			-t $(SOLR_IMAGE_TAG) ./images/solr
 
 build-mail: ## Create the docker image for the mail catcher service
-	echo "Building Mailcatcher image ..."
+	echo "Building Mailcatcher image '$(MAIL_IMAGE_TAG)'..."
 	docker build -q -t $(MAIL_IMAGE_TAG) ./images/mailcatcher	
 
 build-proxy: ## Create the docker image for the Shibboleth Service Provider
-	echo "Building Proxy image ..."
+	echo "Building Proxy image '$(PROXY_IMAGE_TAG)'..."
 	docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
 		-t $(PROXY_IMAGE_TAG) ./images/proxy
 
 build-tools: ## Create the docker image for the Tools service
-	echo "Building Tools image ..."
+	echo "Building Tools image '$(TOOLS_IMAGE_TAG)'..."
 	docker build -q --build-arg APP_USER_ID=$(USER_ID) --build-arg APP_GROUP_ID=$(GROUP_ID) \
 		-t $(TOOLS_IMAGE_TAG) ./images/tools
 
