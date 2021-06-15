@@ -95,7 +95,12 @@ EOF
 
   # JavaMail
   echo "INFO: Defining JavaMail."
-  echo "create-javamail-resource --mailhost=${MAIL_SERVER} --mailuser=dataversenotify --fromaddress=${MAIL_FROMADDRESS} mail/notifyMailSession" >> "${DV_POSTBOOT}"
+  MAIL_OPTS="--mailhost ${MAIL_SERVER} --mailuser ${MAIL_USER:-dataversenotify} --fromaddress ${MAIL_FROMADDRESS}"
+  MAIL_AUTH="mail.smtp.auth=${MAIL_AUTH:-false}:mail.smtp.password=${MAIL_PWD:-password}"
+  MAIL_SOCK="mail.smtp.socketFactory.fallback=${MAIL_SOCKET:-false}:mail.smtp.socketFactory.class=${MAIL_CLASS:-com.sun.mail.smtp.SMTPTransport}"
+  MAIL_SMTP="mail.smtp.port=${MAIL_PORT:-25}:mail.smtp.socketFactory.port=${MAIL_SOCKET_PORT:-25}:${MAIL_SOCK}"
+  MAIL_PROP="--property ${MAIL_AUTH}:${MAIL_SMTP}"
+  echo "create-javamail-resource ${MAIL_OPTS} ${MAIL_PROP} mail/notifyMailSession" >> "${DV_POSTBOOT}"
 
   echo "INFO: defining miscellaneous configuration options."
   # Timer data source
