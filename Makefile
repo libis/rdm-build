@@ -4,8 +4,6 @@ export
 .SILENT:
 SHELL = /bin/bash
 
-.PHONY: up
-
 define help-targets
 	awk -F ':|## ' '/^[^\t]+\s*:[^#]*## / {printf "    \033[36m%-30s\033[0m %s\n", $$1, $$NF}' $(1)
 endef
@@ -26,9 +24,9 @@ help: ## Show list and info on common tasks
 	@echo "$$HELPTEXT"
 	$(call help-targets, $(MAKEFILE_LIST))
 
-build: build-index build-mail build-proxy build-dataverse build-tools ## Build all custom docker images
+build: build-index build-mailcatcher build-mailserver build-proxy build-dataverse build-tools ## Build all custom docker images
 
-push: push-index push-mail push-proxy push-dataverse push-tools ## Publish all custom docker images
+push: push-index push-mailcatcher push-mailserver push-proxy push-dataverse push-tools ## Publish all custom docker images
 
 # DEVELOPMENT TASKS
 ######################################################################################################################
@@ -98,9 +96,13 @@ build-index: ## Create the docker image for the index service (Solr)
 			--build-arg SOLR_VERSION=$(SOLR_VERSION) \
 			-t $(SOLR_IMAGE_TAG) ./images/solr
 
-build-mail: ## Create the docker image for the mail catcher service
-	echo "Building Mailcatcher image '$(MAIL_IMAGE_TAG)'..."
-	docker build -q -t $(MAIL_IMAGE_TAG) ./images/mailcatcher	
+build-mailcatcher: ## Create the docker image for the mail catcher service
+	echo "Building Mail catcher image '$(MAIL_CATCHER_IMAGE_TAG)'..."
+	docker build -q -t $(MAIL_CATCHER_IMAGE_TAG) ./images/mailcatcher	
+
+build-mailserver: ## Create the docker image for the mail server service
+	echo "Building Mail server image '$(MAIL_SERVER_IMAGE_TAG)'..."
+	docker build -t $(MAIL_SERVER_IMAGE_TAG) ./images/mailserver
 
 build-proxy: ## Create the docker image for the Shibboleth Service Provider
 	echo "Building Proxy image '$(PROXY_IMAGE_TAG)'..."
@@ -118,8 +120,11 @@ push-dataverse: ## Publish the docker image for the dataverse service
 push-index: ## Publish the docker image for the index service (Solr)
 	docker push $(SOLR_IMAGE_TAG)
 
-push-mail: ## Publish the docker image for the mail catcher service
-	docker push $(MAIL_IMAGE_TAG)
+push-mailcatcher: ## Publish the docker image for the mail catcher service
+	docker push $(MAIL_CATCHER_IMAGE_TAG)
+
+push-mailserver: ## Publish the docker image for the mail server service
+	docker push $(MAIL_SERVER_IMAGE_TAG)
 
 push-proxy: ## Publish the docker image for the Shibboleth Service Provider
 	docker push $(PROXY_IMAGE_TAG)
