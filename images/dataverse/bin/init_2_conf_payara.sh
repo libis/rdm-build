@@ -12,6 +12,11 @@
 
 # Initialize domain config
 
+if test -d "${DOMAIN_DIR}/applications/dataverse"
+then
+  echo "Domain already configured"
+else
+
 # Fail on any error
 set -e
 
@@ -144,3 +149,5 @@ echo "postboot contains the following commands:"
 echo "--------------------------------------------------"
 cat "${POSTBOOT_COMMANDS}"
 echo "--------------------------------------------------"
+
+fi
