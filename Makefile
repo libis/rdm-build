@@ -102,7 +102,7 @@ build-mailcatcher: ## Create the docker image for the mail catcher service
 
 build-mailserver: ## Create the docker image for the mail server service
 	echo "Building Mail server image '$(MAIL_SERVER_IMAGE_TAG)'..."
-	docker build -t $(MAIL_SERVER_IMAGE_TAG) ./images/mailserver
+	docker build -q -t $(MAIL_SERVER_IMAGE_TAG) ./images/mailserver
 
 build-proxy: ## Create the docker image for the Shibboleth Service Provider
 	echo "Building Proxy image '$(PROXY_IMAGE_TAG)'..."
