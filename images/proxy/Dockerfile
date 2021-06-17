@@ -31,6 +31,9 @@ RUN echo "Installing web server ..." \
  && dnf clean all -q -y \
  && rm -rf /var/cache/yum
 
+# Custom attributes-map.xml for Dataverse
+COPY attribute-map.xml /etc/shibboleth/
+
 # s6-overlay supervisor
 ENTRYPOINT [ "/init" ]
 
