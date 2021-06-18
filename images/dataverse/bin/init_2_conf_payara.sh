@@ -113,6 +113,9 @@ echo "set server-config.network-config.protocols.protocol.http-listener-1.http.c
 # SAX parser options
 echo "create-system-properties javax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl" >> ${DV_POSTBOOT}
 
+# Network timeout
+echo "set server-config.network-config.protocols.protocol.http-listener-1.http.request-timeout-seconds=3600" >> ${DV_POSTBOOT}
+
 # 3. Domain based configuration options
 # Set Dataverse environment variables
 echo "INFO: Defining system properties for Dataverse configuration options."
