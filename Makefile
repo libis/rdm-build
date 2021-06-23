@@ -26,9 +26,9 @@ help: ## Show list and info on common tasks
 	@echo "$$HELPTEXT"
 	$(call help-targets, $(MAKEFILE_LIST))
 
-build: build-index build-mailcatcher build-mailserver build-proxy build-dataverse build-tools ## Build all custom docker images
+build: build-index build-mailcatcher build-proxy build-dataverse build-tools ## Build all custom docker images
 
-push: push-index push-mailcatcher push-mailserver push-proxy push-dataverse push-tools ## Publish all custom docker images
+push: push-index push-mailcatcher push-proxy push-dataverse push-tools ## Publish all custom docker images
 
 # DEVELOPMENT TASKS
 ######################################################################################################################
@@ -102,10 +102,6 @@ build-mailcatcher: ## Create the docker image for the mail catcher service
 	echo "Building Mail catcher image '$(MAIL_CATCHER_IMAGE_TAG)'..."
 	docker build -q -t $(MAIL_CATCHER_IMAGE_TAG) ./images/mailcatcher	
 
-build-mailserver: ## Create the docker image for the mail server service
-	echo "Building Mail server image '$(MAIL_SERVER_IMAGE_TAG)'..."
-	docker build -q -t $(MAIL_SERVER_IMAGE_TAG) ./images/mailserver
-
 build-proxy: ## Create the docker image for the Shibboleth Service Provider
 	echo "Building Proxy image '$(PROXY_IMAGE_TAG)'..."
 	docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
@@ -124,9 +120,6 @@ push-index: ## Publish the docker image for the index service (Solr)
 
 push-mailcatcher: ## Publish the docker image for the mail catcher service
 	docker push $(MAIL_CATCHER_IMAGE_TAG)
-
-push-mailserver: ## Publish the docker image for the mail server service
-	docker push $(MAIL_SERVER_IMAGE_TAG)
 
 push-proxy: ## Publish the docker image for the Shibboleth Service Provider
 	docker push $(PROXY_IMAGE_TAG)
