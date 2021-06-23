@@ -1,3 +1,5 @@
+RDM_STAGE ?= dev
+
 include env.$(RDM_STAGE)
 export
 
