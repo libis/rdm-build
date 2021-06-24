@@ -35,7 +35,7 @@ api POST "admin/superuser/$(jq -r '.userName' $(data_file user-admin.json))"
 echo
 
 echo "Setting up other builtin users"
-datafiles_loop "builtin-users?password=${ADMIN_PASSWORD}&key=${API_USERSKEY}" users
+datafiles_loop "builtin-users?password=${USER_PASSWORD}&key=${API_USERSKEY}" users
 echo
 
 echo "Setting up the root Dataverse collection"

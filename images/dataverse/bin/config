@@ -47,6 +47,12 @@ if [ -s "${SECRETS_DIR}/admin/password" ]; then
   ADMIN_PASSWORD=$(cat "${SECRETS_DIR}/admin/password")
 fi
 
+# Load password of other users if present
+USER_PASSWORD=${ADMIN_PASSWORD}
+if [ -s "${SECRETS_DIR}/user/password" ]; then
+  USER_PASSWORD=$(cat "${SECRETS_DIR}/user/password")
+fi
+
 ############################################################################
 # API bash functions start here.                                           #
 ############################################################################
