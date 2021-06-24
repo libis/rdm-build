@@ -1,40 +1,57 @@
+#######################################################
+# This file is a Bash function library that helps in
+# executing Dataverse API calls for data files in the
+# configuration folders
+#######################################################
+
+#######################################################
+# Environment variables to refer to custom installation
+#######################################################
+
 CUSTOM_INSTALL=${CUSTOM_INSTALL:-/tmp}
 OVERWRITE_DIR="${OVERWRITE_DIR:-${CUSTOM_INSTALL}/overwrite}"
 CUSTOM_DATA="${CUSTOM_DATA:-${CUSTOM_INSTALL}/data}"
 
 [[ -f ${DOMAIN_DIR}/.adminKey ]] && export adminKey="$(cat ${DOMAIN_DIR}/.adminKey)"
 
+# Retrieve the object name from the file name
+#############################################
 obj_name() {
   echo $(basename $1) | sed -E -e 's#^[[:digit:]]+-##; s#\.\w+$##'
 }
 
-obj_first() {
-  echo "$1" | sed -E -e 's#^(\w+)-.*$#\1#'
-}
-
-obj_second() {
-  echo "${1#*-}"
-}
-
-obj_last() {
-  echo $1 | sed -E -e 's#^.*-(\w+)$#\1#'
-}
-
+# Path to a subfolder in the custom install dir
+###############################################
 custom_dir() {
   local dir=$1
   echo "${CUSTOM_DATA}/$dir"
 }
 
+# Path to a subfolder
+#####################
+# The subfolder in the custom install overwrite folder will be preferred over
+# the same path in the standard data folder
 data_dir() {
   local dir=$1
   [ -d "${OVERWRITE_DIR}/$dir" ] && echo "${OVERWRITE_DIR}/$dir" || echo "${DVINSTALL_DIR}/data/$dir"
 }
 
+# Path to a data file
+#####################
+# The file in the custom install overwrite folder will be preferred over
+# the same file in the standard data folder
 data_file() {
   local file=$1
   [ -f "${OVERWRITE_DIR}/$file" ] && echo "${OVERWRITE_DIR}/$file" || echo "${DVINSTALL_DIR}/data/$file"
 }
 
+# Create hierarchical URL
+#########################
+# using the given URL and file name, this function will replace the placeholders
+# '${/x}' with the respective parts in the object name part of the file name.
+# e.g. 'object/${/0}/child/${/1}/info' with file name '03-parent-daughter.json' will
+# result in a URL 'object/parent/child/daughter/info'
+# Please note that the index numbers start at 0 for the first element
 url_path() {
   local url=$1
   local file=$2
@@ -50,6 +67,13 @@ url_path() {
   echo "$url"
 }
 
+# Process a single data file
+############################
+# $1    URL
+# $2    File path
+# $3    Content type - application/json by default
+# $@:4  Any additional curl arguments
+# The api call will perform a POST to the given URL
 datafile() {
   local url=$1
   local file=$2
@@ -59,6 +83,13 @@ datafile() {
   api POST "$url" --data-binary @$file -H "Content-type: $content" "${@:4}"
 }
 
+# Process all data files in a folder
+####################################
+# $1    URL
+# $2    Subfolder
+# $3    File wildcard - *.json by default
+# $4    Content type - application/json by default
+# $@:5  Any other curl arguments
 datafiles_loop() {
   local url=$1
   local dir=$2
@@ -69,20 +100,36 @@ datafiles_loop() {
   done
 }
 
+# Process all settings files in a folder
+########################################
+# $1    URL
+# $2    Subfolder
+# The settings files have JSON content with a specific content and 
+# this function will parse the content and perform the API actions
 settings_loop() {
   local url=$1
   local dir=$2
-  local files=${3:-'*.json'}
+  local files='*.json'
   for f in "$(data_dir $dir)"/$files "$(custom_dir $dir)"/$files; do
     local title=$(jq -r '.title' $f)
-    [ ! "$title" = "" ] && echo "  ... $(obj_name $f)" && \
-      jq -r '.data[]|[.name, .value]|@tsv' $f | \
-      while IFS=$'\t' read -r name value; do \
-        api PUT "$url/$name" -d "$value"; \
+    if [ "$title" != "" ]
+    then
+      echo "  ... $(obj_name $f)"
+      jq -r '.data[]|[.name, .value]|@tsv' $f | while IFS=$'\t' read -r name value
+      do
+        if [ "$value" == "" ]
+        then
+          api DELETE "$url/$name"
+        else
+          api PUT "$url/$name" -d "$value"
+        fi
       done
+    fi
   done
 }
 
+# Perform the API action as super administrator
+###############################################
 superAdmin() {
   URL_HEADERS=("X-Dataverse-key: ${adminKey}")
   "$@"
