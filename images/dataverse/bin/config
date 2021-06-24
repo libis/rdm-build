@@ -47,33 +47,33 @@ if [ -s "${SECRETS_DIR}/admin/password" ]; then
   ADMIN_PASSWORD=$(cat "${SECRETS_DIR}/admin/password")
 fi
 
+############################################################################
+# API bash functions start here.                                           #
+############################################################################
+
+# Note that the api path to supply is the part AFTER the 'api' part.
+# So a path 'info' will result in an API call 'http://<hostname>:<port>/api/info'.
+
+# Check the reply of an API call
+################################
+# displays the status value in the JSON reply
+# or 'FAILED' and the reply itself if status value is not available
 check_reply () {
   echo "$REPLY" | jq -rM '.status' 2>/dev/null || echo -e 'FAILED\n' "$REPLY"
 }
 
-api_get () {
-  api_call GET "$1" 
-}
-
-json_post () {
-  json_call POST "$@"
-}
-
-json_put () {
-  json_call PUT "$@"
-}
-
-json_delete () {
-  json_call DELETE "$@"
-}
-
 URL_HEADERS=()
 
+# Generic Dataverse API call method implemented with curl
+#########################################################
+# Arguments:
+# $1    Method (GET/PUT/POST/...)
+# $2    api path
+# $@:3  other curl args
+# Any extra headers added to the URL_HEADERS array will be added to the curl command
+# If the API is locked by token, the token will be added automatically
+# The API call reply is stored in the REPLY variable
 api_call () {
-  # $1    Method
-  # $2    api path
-  # $@:3  other curl args
-  
   local xtra_opts=()
   for h in "${URL_HEADERS[@]}"; do
     xtra_opts+=("-H" "$h")
@@ -87,10 +87,10 @@ api_call () {
   [[ "${API_DEBUG:-x}" == "true" ]] && echo " -- DEBUG: $REPLY" || true
 }
 
-json_call () {
-  api_call $1 $2 -H "Content-type: application/json" "${@:3}"
-}
-
+# Higher level Dataverse API call
+#################################
+# same args as generic API call
+# will also process the reply and check if successful
 api() {
   api_call "$@"
   local STATUS=$(jq -n "${REPLY}" | jq -r '.status' 2>/dev/null || echo 'ERROR')
@@ -101,18 +101,61 @@ api() {
   return -1
 }
 
+# Dataverse API GET call
+########################
+# single argument with api path
+api_get () {
+  api_call GET "$1" 
+}
+
+# Dataverse API call for JSON data
+##################################
+# content type preset to JSON
+# Same args as generic API call
+json_call () {
+  api_call $1 $2 -H "Content-type: application/json" "${@:3}"
+}
+
+# Dataverse API post call for JSON data
+#######################################
+# method argument preset to POST
+json_post () {
+  json_call POST "$@"
+}
+
+# Dataverse API put call for JSON data
+######################################
+# method argument preset to PUT
+json_put () {
+  json_call PUT "$@"
+}
+
+# Dataverse API delete call for JSON data
+#########################################
+# method argument preset to DELETE
+json_delete () {
+  json_call DELETE "$@"
+}
+
+# Disable the Dataverse API to create builtin users
+###################################################
 builtin_disable() {
   echo "Disabling Builtin Users API"
   api DELETE 'admin/settings/BuiltinUsers.KEY'
   echo
 }
 
+# Enable the Dataverse API to create builtin users
+##################################################
+# The special API userskey is required
 builtin_enable() {
   echo "Setting Builtin Users Key"
   api PUT 'admin/settings/BuiltinUsers.KEY' -d "${API_USERSKEY}" 
   echo
 }
 
+# Protect the Dataverse admin API with a token
+##############################################
 api_by_token() {
   echo "Protecting admin API with token"
   export API_LOCAL="false"
@@ -122,6 +165,8 @@ api_by_token() {
   echo
 }
 
+# Restrict the Dataverse admin API to locahost only
+###################################################
 api_only_local() {
   echo "Restricting admin API to localhost only"
   api PUT  'admin/settings/:BlockedApiEndpoints' -d 'admin,builtin-users'
