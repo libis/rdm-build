@@ -25,7 +25,7 @@ The actions are enabled with make. The Makefile contains a limited set of target
 
 - `build` : build all images
 - `push` : publish the images to the repository
-- `download-dataverse` : download the Dataverse installation package and prepare the files to be included in the images
+- `download_dataverse` : download the Dataverse installation package and prepare the files to be included in the images
 
 There are also targets for building and publishing a single image.
 
