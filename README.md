@@ -18,7 +18,7 @@ The other image version is one that will be deployed on a test or production ser
 You select which version of the image you will be building by setting the RDM_STAGE environment variable. The value `dev` - which is de default - will build local images, while the value `prod` will build repository images.
 
 ```
-$ export RDM_TAGE=prod
+$ export RDM_STAGE=prod
 ```
 
 The actions are enabled with make. The Makefile contains a limited set of targets:
