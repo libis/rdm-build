@@ -7,7 +7,7 @@ require 'fileutils'
 root_dv = Dataverse::Dataverse.id('kul')
 
 root_dv.each_dataset do |ds|
-  next unless ds.published
+  next unless ds.version(:published)
   data = ds.export_metadata('rdm')
   filename = "exports/#{ds['identifier']}.json"
   filepath = "#{ENV['DATA_DIR']}/#{filename}"
