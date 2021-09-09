@@ -6,6 +6,10 @@ ARG APP_GROUP=app
 ARG APP_USER_ID=1000
 ARG APP_GROUP_ID=1000
 
+RUN apt-get update -qqy \
+ && DEBIAN_FRONTEND=noninteractive apt-get -qq --no-install-recommends install -qqy python3-pip python3-venv \
+ && rm -rf /var/lib/apt/lists/*
+
 COPY docker-entrypoint.sh /usr/bin
 
 RUN chmod +x /usr/bin/docker-entrypoint.sh \
@@ -21,6 +25,13 @@ COPY --chown=${APP_USER}:${APP_GROUP} Gemfile* *.rb *.sh ${APP_PATH}/
 RUN bundle install && chmod +x *.rb *.sh
 
 USER ${APP_USER}
+
+# Install Python virtual environment with required modules
+RUN python3 -m venv venv \
+ && . $HOME/venv/bin/activate \
+ && pip install --upgrade pip \
+ && pip install setuptools configparser numpy pandas pyDataverse pysftp requests \
+ && echo ". ./venv/bin/activate" >> ${APP_PATH}/.bashrc
 
 ENTRYPOINT [ "docker-entrypoint.sh" ]
 
