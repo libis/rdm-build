@@ -135,7 +135,19 @@ do
   echo "create-system-properties ${KEY}=${v}" >> "${DV_POSTBOOT}"
 done
 
-# 4. Run custom commands, if available
+# 4. Copy properties files
+if [ "${LANG_DIR}" != "" ]
+then
+  echo "create-jvm-options '-Ddataverse.lang.directory=${LANG_DIR}'" >> "${DV_POSTBOOT}"
+  mkdir -p "${LANG_DIR}"
+  readarray -d '' PROP_FILES < <(find "${DOMAIN_DIR}/applications/dataverse/WEB-INF/classes" -type f -name '*.properties' -print0)
+  for f in "${PROP_FILES[@]}"
+  do
+    [ -f "$f" ] || cp "$f" "${LANG_DIR}"
+  done
+fi
+
+# 5. Run custom commands, if available
 [ -f "${HOME_DIR}/custominstall/preboot" ] && cat "${HOME_DIR}/custominstall/preboot" >> "${DV_PREBOOT}"
 [ -f "${HOME_DIR}/custominstall/postboot" ] && cat "${HOME_DIR}/custominstall/postboot" >> "${DV_POSTBOOT}"
 
