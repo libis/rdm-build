@@ -56,7 +56,6 @@ services:
     volumes:
       - ${INDEX_DATA}:/var/solr
       - ./secrets/api_key:/run/secrets/api_key
-      - ./config
     restart: unless-stopped
 
   dataverse:
