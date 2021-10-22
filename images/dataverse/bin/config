@@ -53,6 +53,49 @@ if [ -s "${SECRETS_DIR}/user/password" ]; then
   USER_PASSWORD=$(cat "${SECRETS_DIR}/user/password")
 fi
 
+# Function to correctly parse tsv line
+# From: https://stackoverflow.com/a/4622512
+# This code prevents the collapsing delimiters problem with Bash read
+read_tdf_line() {
+  local default_ifs=$' \t\n'
+  local n line element at_end old_ifs
+  old_ifs="${IFS:-${default_ifs}}"
+  IFS=$'\n'
+
+  if ! read -r line ; then
+    return 1
+  fi
+  at_end=0
+  while read -r element; do
+    if (( $# > 1 )); then
+      printf -v "$1" '%s' "$element"
+      shift
+    else
+      if (( at_end )) ; then
+        # replicate read behavior of assigning all excess content
+        # to the last variable given on the command line
+        printf -v "$1" '%s\t%s' "${!1}" "$element"
+      else
+        printf -v "$1" '%s' "$element"
+        at_end=1
+      fi
+    fi
+  done < <(tr '\t' '\n' <<<"$line")
+
+  # if other arguments exist on the end of the line after all
+  # input has been eaten, they need to be blanked
+  if ! (( at_end )) ; then
+    while (( $# )) ; do
+      printf -v "$1" '%s' ''
+      shift
+    done
+  fi
+
+  # reset IFS to its original value (or the default, if it was
+  # formerly unset)
+  IFS="$old_ifs"
+}
+
 ############################################################################
 # API bash functions start here.                                           #
 ############################################################################
