@@ -27,7 +27,7 @@ The actions are enabled with make. The Makefile contains a limited set of target
 - `push` : publish the images to the repository
 - `download_dataverse` : download the Dataverse installation package and prepare the files to be included in the images
 
-There are also targets for building and publishing a single image.
+There are also targets for building and publishing a single image. Use the `help` target to list the other options.
 
 ## Dataverse image
 
@@ -40,7 +40,7 @@ The downloaded Dataverse installation files are be copied into the image to enab
 ### image structure
 
 - `bin` folder contains bash scripts that are used when the container is started or can be executed on demand.
-  - `init_*.sh` scripts that run when the container is started
+  - `init_0_deploy_dataverse.sh` script that runs when the container is started
   - `builtin-users-*.sh` scripts that enable/disable the APIs to create builtin users
   - `security-*.sh` scripts that secure admin API by token/localhost-only
   - `bootstrap-job.sh` main script for bootstrapping the application
@@ -53,7 +53,7 @@ The downloaded Dataverse installation files are be copied into the image to enab
   - `setup-all.sh` script dat scans the data files and performs the API actions to create the objects
   - `setup-tools` library of functions for data file actions
 
-The Docker container will execute the `init_*.sh` scripts in alphabetical order when  booting the image. The first script will deploy any war file that it finds in a specific location. The second one will prepare a script for Payara's asadmin command to be executed after the application server has started.
+The Docker container will execute the `init_*.sh` scripts in alphabetical order when  booting the image. Our script will deploy the dataverse war file and prepare scripts for Payara's asadmin command to be executed when the application server starts. The script will skip its tasks when the application is already deployed.
 
 The `bootstrap-job.sh` script needs to be called manually and should only be called when the application has started completely. It will delegate most of its work to the `setup-all.sh` and `config-job.sh` scripts. The first script will scan the `data` folder for files with data (mostly JSON) and execute API calls to load the data. The second script scans the environment for certain variables and configures the application from these.
 
@@ -62,7 +62,7 @@ The `data` folder contains the settings for a default and out-of-the-box install
 - otherwise, parse 'A' folder in the image standard `data` folder
 - then, if subfolder 'A' exists in custom `data` folder, parse custom subfolder `A` too.
 
-And similary for individual data files.
+And similary for individual data files in the root of the standard `data` and custom folders.
 
 ### data folders
 
@@ -75,7 +75,7 @@ The data folders, either the standard data folder, the custom overwrite folder o
 
   each JSON data file in the folder will create a subcolletion
 
-  the first string in the file name contain the alias of the parent collection
+  the first string in the file name should contain the alias of the parent collection
 
   for each file in each of the subfolders, the first string in the file name should always contain the alias of the collection the action should be applied to
   
@@ -115,7 +115,7 @@ The data folders, either the standard data folder, the custom overwrite folder o
 
 - `settings` folder with database settings
 
-  each file should contain a JSON object with free to choose title field and data field containing an array of objects. Each data object should contain a name and value field containing the settings name and value. For a list of settings names see the Dataverse documentation regarding [Database Settings](https://guides.dataverse.org/en/latest/installation/config.html).
+  each file should contain a JSON object with free to choose `title` field and `data` field containing an array of objects. Each data object should contain a `name` and `value` field containing the settings name and value. For a list of settings names see the Dataverse documentation regarding [Database Settings](https://guides.dataverse.org/en/latest/installation/config.html).
 
   You are free to organize the settings in different files, but be aware that the files will be processed in alphabetical order and repeated setting names will overwrite earlier defined values.
 
@@ -125,15 +125,17 @@ The data folders, either the standard data folder, the custom overwrite folder o
 
   each JSON data file defines the parameters for a single user
 
+- `branding` folder that contains any (HTML) files needed for branding
+
 ### configuration
 
 As explained above, the image allows customisation at run-time by supplying a custom install dir. That directory can be mounted anywhere in the file system as long as the `CUSTOM_INSTALL` environment variable points to that folder. This folder should be the parent folder of the `data` and `overwrite` subfolders.
 
 Next to the subfolders the custom installation folder may also contain:
 
-- `setup-all.sh` script that will be executed as part of the bootstrap task
-- `preboot` file containing any additional asadmin commands that should be executed before the application server boot
-- `postboot` file containing any additional asadmin commands that should be executed right after the application server boot
+- `setup-all.sh` script that will be executed as part of the bootstrap task and contains additional configuration steps
+- `preboot` file containing any additional asadmin commands that should be executed before the application server boots
+- `postboot` file containing any additional asadmin commands that should be executed right after the application server boots
 - any other custom script you may want to execute in the container
 
 Other environment variables that configure the Dataverse installation are:
@@ -156,13 +158,13 @@ Other environment variables that configure the Dataverse installation are:
 
 Next to that the image expexts the following secrets to be set:
 
-- `db_password` mounted as `/run/secrets/db/password` : the password part of the database credentials
-- `admin_password` mounted as `/run/secrets/admin/password` : the password for the super admin user
-- `user_password` mounted as `/run/secrets/user/password` : the default password for other users created by the bootstrap routine
-- `api_key` mounted as `/run/secrets/api/key` : API token to use
-- `api_userskey` mounted as `/run/secrets/api/userskey` : key for creating builtin users
-- `doi_password` mounted as `/run/secrets/doi/password` : password for the Datacite account
-- `rserve_password` mounted as `/run/secrets/rserve/password` : password for the RServer account (not yet used)
+- `/run/secrets/db/password` : the password part of the database credentials
+- `/run/secrets/admin/password` : the password for the super admin user
+- `/run/secrets/user/password` : the default password for other users created by the bootstrap routine
+- `/run/secrets/api/key` : API token to use
+- `/run/secrets/api/userskey` : key for creating builtin users
+- `/run/secrets/doi/password` : password for the Datacite account
+- `/run/secrets/rserve/password` : password for the RServer account (not yet used)
 
 ## Solr image
 
@@ -199,4 +201,18 @@ Running only the Ruby-based mailcatcher tool, this image is very simple. Configu
 
 The image is built from a ruby image with added support for the Dataverse API gem. A menu with common tools is available.
 
-It is recommended to mount a host location to the `/opt/data` folder to capture any output from the tools. 
+The tools in the image may require some data volumes to be mounted. It is recommended to mount a host location to the `/opt/data` folder to capture any output from the tools.
+
+# Local test deployment
+
+A local deployment configuration is included for testing purposes. You can find the test deployment in the `test` folder. All that is needed is a local docker installation and the `docker-compose` tool.
+
+The installation is driven by the included `Makefile`. List the targets available with `make help`:
+
+- `up`: start the stack
+- `down`: shut down the stack
+- `restart`: stop and start the stack
+- `redeploy`: stops the stack, removes the docker volume where the application is deployed and starts the stack again
+- `status`: shows the status of the stack services
+- `tools`: run the tools image menu
+- `reset`: stops and removes the stack and all the data; then starts the stack and initializes the application
