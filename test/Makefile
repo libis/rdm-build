@@ -64,7 +64,6 @@ status: ## List all running services
 .PHONY: tools
 tools: ## Run tools container
 	docker run --rm -it --network test_app_net -v $(PWD)/$(TOOLS_DATA):/opt/data -v $(PWD)/$(TOOLS_SCRIPTS):/opt/app/scripts \
-		-v $(DV_LANG_DIR):/opt/languages -v $(PWD)/config/dataverse:/opt/dv_config \
 		-e DATAVERSE_SERVICE_HOST=dataverse -e DATAVERSE_SERVICE_PORT_HTTP=8080 \
 		$(TOOLS_IMAGE_TAG) bash -c ./menu.sh
 
