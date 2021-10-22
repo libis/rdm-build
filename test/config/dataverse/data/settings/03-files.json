@@ -1,0 +1,25 @@
+{
+  "title": "Files settings",
+  "data": [
+    {
+      "name": ":MaxFileUploadSizeInBytes",
+      "value": "5368709120"
+    },
+    {
+      "name": ":ZipUploadFilesLimit",
+      "value": "50"
+    },
+    {
+      "name": ":ZipDownloadLimit",
+      "value": "21474836480"
+    },
+    {
+      "name": ":TabularIngestSizeLimit",
+      "value": "2147483648"
+    },
+    {
+      "name": ":SolrFullTextIndexing",
+      "value": "true"
+    }
+  ]
+}

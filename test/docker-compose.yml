@@ -1,0 +1,171 @@
+version: "3.8"
+
+services:
+
+  proxy:
+    image: ${PROXY_IMAGE_TAG}
+    environment:
+      TZ: "Europe/Brussels"
+    networks:
+      - apps
+    ports:
+      - "7000:443"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./config/proxy/conf.d/ssl.conf:/etc/httpd/conf.d/ssl.conf
+      - ./config/proxy/shibboleth/shibboleth2.xml:/etc/shibboleth/shibboleth2.xml
+      - ./config/proxy/certs:/etc/pki/rdm
+      - ${PROXY_LOGS}/httpd:/var/log/httpd
+      - ${PROXY_LOGS}/shib:/var/log/shibboleth
+      - ./config/proxy/html:/var/www/html
+    restart: unless-stopped
+
+  db:
+    image: postgres:13-alpine
+    user: "${USER_ID}:${GROUP_ID}"
+    init: true
+    networks:
+      - database
+    environment:
+      LC_ALL: C.UTF-8
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_PORT: 5432
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/passwd:/etc/passwd:ro
+      - ${DB_DATA}:/var/lib/postgresql/data/
+      - ./secrets/db_password:/run/secrets/db_password
+    restart: unless-stopped
+
+  index:
+    image: ${SOLR_IMAGE_TAG}
+    user: "${USER_ID}:${GROUP_ID}"
+    init: true
+    networks:
+      - apps
+    ports:
+      - "7002:8983"
+    environment:
+      DATAVERSE_URL: "http://dataverse:8080"
+      UNBLOCK_KEY: "/run/secrets/api_key"
+      OOM: "script"
+      SOLR_JAVA_MEM: "-Xms512m -Xmx2048m"
+    volumes:
+      - ${INDEX_DATA}:/var/solr
+      - ./secrets/api_key:/run/secrets/api_key
+      - ./config
+    restart: unless-stopped
+
+  dataverse:
+    image: ${DATAVERSE_IMAGE_TAG}
+    networks:
+      - apps
+      - database
+    ports:
+      - "7008:8080"
+      - "7005:4848"
+    environment:
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DATABASE: ${DB_NAME}
+      SOLR_SERVICE_HOST: index
+      SOLR_SERVICE_PORT_HTTP: 8983
+      MAIL_SERVER: ${MAIL_SERVICE_HOST}
+      MAIL_FROMADDRESS: ${MAIL_SENDER}
+      DATAVERSE_SERVICE_HOST: "localhost"
+      DATAVERSE_SERVICE_PORT_HTTP: 8080
+      dataverse_fqdn: "${FQDN}"
+      dataverse_siteUrl: "https://${FQDN}"
+      doi_provider: "FAKE"
+      db_SystemEmail: ${MAIL_SENDER_NAME}
+      CUSTOM_INSTALL: "/opt/payara/custominstall"
+      API_DEBUG: "false"
+      LANG_DIR: "/languages"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./config/dataverse:/opt/payara/custominstall
+      - dv_domain:/opt/payara/appserver/glassfish/domains/domain1
+      - ${DV_FILES}:/data
+      - ${DV_DUMPS}:/dumps
+      - ${DV_UPLOADS}:/uploads
+      - ${DV_LANG_DIR}:/languages
+      - ./secrets/db_password:/run/secrets/db/password
+      - ./secrets/admin_password:/run/secrets/admin/password
+      - ./secrets/user_password:/run/secrets/user/password
+      - ./secrets/api_key:/run/secrets/api/key
+      - ./secrets/api_userskey:/run/secrets/api/userskey
+      - ./secrets/doi_password:/run/secrets/doi/password
+      - ./secrets/rserve_password:/run/secrets/rserve/password
+    restart: unless-stopped
+    depends_on:
+      - db
+      - index
+      - mail
+
+  mail:
+    image: ${MAIL_CATCHER_IMAGE_TAG}
+    networks:
+      - apps
+    ports:
+     - "7001:1080"
+    environment:
+      HTTP_PORT: 1080
+      SMTP_PORT: ${MAIL_SMTP_PORT}
+    restart: unless-stopped
+
+  dbadmin:
+    image: dpage/pgadmin4
+    user: "${USER_ID}:${GROUP_ID}"
+    networks:
+      - database
+      - apps
+    ports:
+      - "7004:5050"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${DBADMIN_USER}
+      PGADMIN_DEFAULT_PASSWORD: ${DBADMIN_PWD}
+      PGADMIN_CONFIG_SERVER_MODE: "True"
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "True"
+      PGADMIN_CONFIG_LOG_FILE: "'/var/lib/pgadmin/pgadmin4.log'"
+      PGADMIN_LISTEN_ADDRESS: "0.0.0.0"
+      PGADMIN_LISTEN_PORT: "5050"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${DBADMIN_DATA}:/var/lib/pgadmin
+      - ${DBADMIN_LOGS}:/var/log/pgadmin
+    restart: unless-stopped
+    depends_on:
+      - db
+
+  apidoc:
+    image: swaggerapi/swagger-ui
+    networks:
+      - apps
+    environment:
+      SWAGGER_JSON_URL: "${DATAVERSE_URL_PREFIX}://${FQDN}/openapi?format=json"
+      DISPLAY_REQUEST_DURATION: "true"
+      DISPLAY_OPERATION_ID: "true"
+      BASE_URL: "/apidoc"
+      SHOW_EXTENSIONS: "true"
+      SHOW_COMMON_EXTENSIONS: "true"
+      LAYOUT: "BaseLayout"
+    restart: unless-stopped
+    depends_on:
+      - proxy
+      - dataverse
+
+networks:
+  apps:
+    name: test_app_net
+    attachable: true
+
+  database:
+    name: test_db_net
+    attachable: true
+
+volumes:
+  dv_domain:

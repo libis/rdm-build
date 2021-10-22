@@ -1,0 +1,17 @@
+{
+    "title": "Branding settings",
+    "data": [
+      {
+        "name": ":FooterCopyright",
+        "value": "All rights reserved"
+      },
+      {
+        "name": ":LogoCustomizationFile",
+        "value": "/images/dataverseicon.png"
+      },
+      {
+        "name": ":FooterCustomizationFile",
+        "value": "/opt/payara/custominstall/data/branding/custom-footer.html"
+      }            
+    ]
+}

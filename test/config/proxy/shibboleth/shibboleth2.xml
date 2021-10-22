@@ -1,0 +1,62 @@
+<SPConfig xmlns="urn:mace:shibboleth:3.0:native:sp:config"
+          xmlns:conf="urn:mace:shibboleth:3.0:native:sp:config"
+          xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
+          xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+          clockSkew="180"
+>
+
+    <OutOfProcess logger="shibd.logger" tranLogFormat="%u|%s|%SP|%IDP|%i|%ac|%t|%attr|%n|%b|%E|%S|%SS|%L|%UA|%a" />
+  
+    <ApplicationDefaults entityID="https://localhost/shibboleth" 
+                         homeURL="https://localhost/shib.xhmtl"
+                         metadataAttributePrefix="Meta-"
+                         REMOTE_USER="eppn persistent-id targeted-id"
+                         attributePrefix="AJP_"
+    >
+       <Sessions lifetime="172800"
+                 timeout="28800" 
+                 checkAddress="false" 
+                 consistentAddress="true" 
+                 handlerURL="/Shibboleth.sso" 
+                 cookieProps="https" 
+                 handlerSSL="true" 
+                 redirectLimit="host"
+        >
+            <SSO entityID="urn:mace:dataverse.org:dataverse:dataverse.org"> SAML2 </SSO>
+            <Logout>SAML2 Local</Logout>
+            <Handler type="MetadataGenerator" Location="/Metadata" signing="false"/>
+            <Handler type="Status" Location="/Status" acl="127.0.0.1"/>
+            <Handler type="Session" Location="/Session" showAttributeValues="true"/>
+            <Handler type="DiscoveryFeed" Location="/DiscoFeed"/>
+        </Sessions>
+
+        <Errors supportContact="admin@email.com"
+                logoLocation="/shibboleth-sp/logo.jpg"
+                helpLocation="/about.html"
+                styleSheet="/shibboleth-sp/main.css"/>
+
+        <MetadataProvider type="XML" 
+                          url="https://idp.dataverse.org/idp/shibboleth"
+                          backingFilePath="metadata.xml"
+                          reloadInterval="7200">
+        </MetadataProvider>
+
+       <AttributeExtractor type="XML"
+                           url="https://shib.dataverse.org/download/sp/2.x/attribute-map-proxy.xml"
+                           backingFilePath="attribute-map.xml"
+                           reloadInterval="7200"/>
+                
+        <AttributeResolver type="Query" subjectMatch="true"/>
+
+        <AttributeFilter type="XML" validate="true" path="attribute-policy.xml"/>
+
+        <CredentialResolver type="File"
+          key="/etc/pki/rdm/sp-signing-key.pem" certificate="/etc/pki/rdm/sp-signing-cert.pem"/>
+
+    </ApplicationDefaults>
+    
+    <SecurityPolicyProvider type="XML" validate="true" path="security-policy.xml"/>
+
+    <ProtocolProvider type="XML" validate="true" reloadChanges="false" path="protocols.xml"/>
+
+</SPConfig>

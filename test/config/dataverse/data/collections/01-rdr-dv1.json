@@ -1,0 +1,12 @@
+{
+    "alias": "dv1",
+    "name": "Collection 1",
+    "description": "Dataverse first collection",
+    "dataverseContacts": [
+        {
+            "contactEmail": "dv1@email.com"
+        }
+    ],
+    "affiliation": "Dataverse.org",
+    "dataverseType": "ORGANIZATIONS_INSTITUTIONS"
+}

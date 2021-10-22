@@ -1,0 +1,9 @@
+{
+  "title": "Submit for review customizations",
+  "data": [
+    {
+      "name": "Bundle.properties#dataset.submitMessage",
+      "value": "By submitting your dataset for review you agree to the [Terms of use] and confirm to have checked the <a href=\"https://guides.dataverse.org/en/latest/user/index.html\" target=\"_blank\">manual</a> with attention to the <a href=\"https://conjointly.com/kb/data-preparation/\" target=\"_blank\">Prepare your data</a> checklist."
+    }
+  ]
+}

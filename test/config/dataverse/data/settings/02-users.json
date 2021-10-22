@@ -1,0 +1,13 @@
+{
+  "title": "User signup",
+  "data": [
+    {
+      "name": ":AllowSignUp",
+      "value": "false"
+    },
+    {
+      "name": ":MinutesUntilConfirmEmailTokenExpires",
+      "value": "60"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "title": "Login screen customizations",
+  "data": [
+    {
+      "name": "Bundle.properties#login.institution.blurb",
+      "value": "Log in or sign up with your SSO account &mdash; <a href=\"https://guides.dataverse.org/en/latest/installation/shibboleth.html\" target=\"_blank\">more information about login</a>."
+    },
+    {
+      "name": "Bundle.properties#login.institution.support.blurbwithLink",
+      "value": "By continuing you agree to the [Terms of use] and confirm to have checked the <a href=\"https://guides.dataverse.org/en/latest/user/index.html\" target=\"_blank\">manual</a> with attention to the <a href=\"https://conjointly.com/kb/data-preparation/\" target=\"_blank\">Prepare your data</a> checklist."
+    }
+  ]
+}

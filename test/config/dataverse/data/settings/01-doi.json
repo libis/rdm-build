@@ -1,0 +1,17 @@
+{
+  "title": "DOI setup",
+  "data": [
+    {
+      "name": ":Authority",
+      "value": "10.123456"
+    },
+    {
+      "name": ":Shoulder",
+      "value": "RDM."
+    },
+    {
+      "name": ":FilePIDsEnabled",
+      "value": "true"
+    }
+  ]
+}
