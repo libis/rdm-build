@@ -107,7 +107,18 @@ build-proxy: ## Create the docker image for the Shibboleth Service Provider
 	docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
 		-t $(PROXY_IMAGE_TAG) ./images/proxy
 
-build-tools: ## Create the docker image for the Tools service
+download-tools:
+	if ! [[ -d rdmPyTools ]]; then \
+		echo "Cloning rdmPyTools ..."; git clone git@github.com:libis/rdmPyTools.git; \
+	else \
+		echo "Updating rdmPyTools ..."; cd rdmPyTools; git pull; cd -; \
+	fi
+
+update-tools: download-tools
+	mkdir -p tools/images/rdmPyTools
+	for f in rdmPyTools/bin/* rdmPyTools/R/*; do name=$$(basename $$f); [[ -f $$f ]] &&cp $$f images/tools/rdmPyTools/$$name; done
+
+build-tools: update-tools ## Create the docker image for the Tools service
 	echo "Building Tools image '$(TOOLS_IMAGE_TAG)'..."
 	docker build -q --build-arg APP_USER_ID=$(USER_ID) --build-arg APP_GROUP_ID=$(GROUP_ID) \
 		-t $(TOOLS_IMAGE_TAG) ./images/tools
