@@ -1,0 +1,31 @@
+{
+  "displayName": "View Html",
+  "description": "View the html file.",
+  "scope": "file",
+  "type": "explore",
+  "hasPreviewMode": "true",
+  "toolUrl": "https://globaldataversecommunityconsortium.github.io/dataverse-previewers/previewers/HtmlPreview.html",
+  "toolParameters": {
+    "queryParameters": [
+      {
+        "fileid": "{fileId}"
+      },
+      {
+        "siteUrl": "{siteUrl}"
+      },
+      {
+        "key": "{apiToken}"
+      },
+      {
+        "datasetid": "{datasetId}"
+      },
+      {
+        "datasetversion": "{datasetVersion}"
+      },
+      {
+        "locale": "{localeCode}"
+      }
+    ]
+  },
+  "contentType": "text/html"
+}

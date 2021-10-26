@@ -1,0 +1,31 @@
+{
+  "displayName": "Read Text",
+  "description": "Read the text file.",
+  "scope": "file",
+  "type": "explore",
+  "hasPreviewMode": "true",
+  "toolUrl": "https://globaldataversecommunityconsortium.github.io/dataverse-previewers/previewers/TextPreview.html",
+  "toolParameters": {
+    "queryParameters": [
+      {
+        "fileid": "{fileId}"
+      },
+      {
+        "siteUrl": "{siteUrl}"
+      },
+      {
+        "key": "{apiToken}"
+      },
+      {
+        "datasetid": "{datasetId}"
+      },
+      {
+        "datasetversion": "{datasetVersion}"
+      },
+      {
+        "locale": "{localeCode}"
+      }
+    ]
+  },
+  "contentType": "text/plain"
+}

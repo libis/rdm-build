@@ -72,6 +72,9 @@ echo "Setting up role assignments per collection ..."
 superAdmin datafiles_loop 'dataverses/${/0}/assignments' collections/role-assignments
 echo
 
+echo "Configuring external tools ..."
+superAdmin datafiles_loop 'externalTools' external-tools
+
 # Custom configuration
 CUSTOMSCRIPT="${CUSTOM_INSTALL}/setup-all.sh"
 [[ -e "${CUSTOMSCRIPT}" ]] && "${CUSTOMSCRIPT}" "${adminKey}"
