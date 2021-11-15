@@ -56,67 +56,10 @@ if [ ! -z "${UNBLOCK_KEY}" ]; then
   fi
 fi
 
-### Retrieval
-echo "Retrieve schema data from ${DATAVERSE_URL}/api/admin/index/solr/schema"
-TMPFILE=`mktemp`
-# REPLY=$(curl -f -sS "${DATAVERSE_URL}/api/admin/index/solr/schema${UNBLOCK_KEY}")
-# echo "$REPLY" > $TMPFILE
-curl -f -sS "${DATAVERSE_URL}/api/admin/index/solr/schema${UNBLOCK_KEY}" > $TMPFILE
+# Call the new update-fields.sh script to update the schema
+curl -f -s "${DATAVERSE_URL}/api/admin/index/solr/schema${UNBLOCK_KEY}" | ./update-fields.sh ${TARGET}/schema.xml
 
-### Fail gracefull if Dataverse is not ready yet.
-if [[ `wc -l < ${TMPFILE}` -lt 3 ]]; then
-  echo "Dataverse responded with empty file. When running on K8s: did you bootstrap yet?"
-  exit 123
-fi
-echo
-
-### Processing field entries
-echo "Replacing field lines"
-START='<!-- Dynamic Dataverse fields from http://localhost:8080/api/admin/index/solr/schema -->'
-INCL='<xi:include href="schema_dv_mdb_fields.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />'
-END='<!-- End of Dynamic Dataverse fields -->'
-
-### -- create temp file with new content
-TMPF=`mktemp`
-echo "$START" > ${TMPF}
-cat ${TMPFILE} | grep ".*<field" >> ${TMPF}
-echo "$END" >> ${TMPF}
-
-### -- first replace INCL with END if it is still there
-sed -e 's@'"$INCL"'@'"$END"'@' -i ${TARGET}/schema.xml
-
-### -- replace START->END with content of temp file
-sed -e '\@'"$START"'@,\@'"$END"'@!b' -e '\@'"$END"'@!d;r '"$TMPF" -e 'd' -i ${TARGET}/schema.xml
-
-### -- remove temp file
-rm "${TMPF}"
-
-### -- field processing done
-echo
-
-### Processing copyField entries
-echo "Replacing copyField lines"
-START='<!-- Dataverse copyField from http://localhost:8080/api/admin/index/solr/schema -->'
-END='<!-- End: Dataverse-specific -->'
-
-### -- create temp file with new content
-TMPCF=`mktemp`
-echo "$START" > ${TMPCF}
-cat ${TMPFILE} | grep ".*<copyField" >> ${TMPCF}
-echo "$END" >> ${TMPCF}
-
-### -- replace START->END with content of temp file
-sed -e '\@'"$START"'@,\@'"$END"'@!b' -e '\@'"$END"'@!d;r '"$TMPCF" -e 'd' -i ${TARGET}/schema.xml
-
-### -- remove temp file
-rm "${TMPCF}"
-
-### -- copyField processing done
-echo
-
-rm ${TMPFILE}*
-
-### Reloading
+# Reload the Solr collection
 echo "Triggering Solr RELOAD at ${SOLR_URL}/solr/admin/cores?action=RELOAD&core=collection1"
 curl -f -sS "${SOLR_URL}/solr/admin/cores?action=RELOAD&core=collection1" >/dev/null
 echo

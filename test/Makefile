@@ -101,7 +101,7 @@ solr_config:
 
 .PHONY: solr_update
 solr_update:
-	docker-compose exec index updateSchemaMDB.sh -d http://dataverse:8080 -t /var/solr/data/collection1/conf -u /run/secrets/api_key || true
+	docker-compose exec index updateSchema.sh -d http://dataverse:8080 -t /var/solr/data/collection1/conf -u /run/secrets/api_key || true
 
 .PHONY: certificates
 certificates: ssl-certs shib-certs

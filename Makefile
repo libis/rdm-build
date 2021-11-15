@@ -71,7 +71,7 @@ download_dataverse: ## Download the Dataverse installation package and distribut
 	echo "  ... Solr configuration"
 	cp dvinstall/schema.xml                             images/solr/conf/schema.xml
 	cp dvinstall/solrconfig.xml                         images/solr/conf/solrconfig.xml
-	cp dvinstall/schema_dv_mdb_fields.xml               images/solr/conf/schema_dv_mdb_fields.xml
+	cp dvinstall/update-fields.sh                       images/solr/scripts/update-fields.sh
 	
 diff:
 	echo "Checking differences ..."
@@ -81,8 +81,6 @@ diff:
 	  do echo -n " - $$f: "; diff -bq images/dataverse/dvinstall/$$f dvinstall/$$f &>/dev/null && echo "OK" || echo "!! DIFFERENT !!"; done || true
 	for f in schema_dv_mdb_fields.xml schema.xml solrconfig.xml; \
 	  do echo -n " - $$f: "; diff -bEq images/solr/conf/$$f dvinstall/$$f &>/dev/null && echo "OK" || echo "!! DIFFERENT !!"; done || true
-	for f in updateSchemaMDB.sh; \
-	  do echo -n " - $$f: "; diff -bq images/solr/scripts/$$f dvinstall/$$f &>/dev/null && echo "OK" || echo "!! DIFFERENT !!"; done || true
 	
 build-dataverse: ## Create the docker image for the dataverse service
 	echo "Building Dataverse image '$(DATAVERSE_IMAGE_TAG)'..."
