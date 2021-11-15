@@ -18,7 +18,7 @@ set -euo pipefail
 # curl
 
 usage() {
-  echo "usage: updateSchemaMDB.sh [options]"
+  echo "usage: updateSchema.sh [options]"
   echo "options:"
   echo "    -d <url>      Dataverse URL, defaults to http://localhost:8080"
   echo "    -h            Show this help text"
@@ -32,6 +32,8 @@ DATAVERSE_URL=${DATAVERSE_URL:-"http://localhost:8080"}
 SOLR_URL=${SOLR_URL:-"http://localhost:8983"}
 TARGET=${TARGET:-"/tmp"}
 UNBLOCK_KEY=${UNBLOCK_KEY:-""}
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 # if cmdline args are given, override any env var setting (or defaults)
 while getopts ":d:hs:t:u:" opt
@@ -57,7 +59,7 @@ if [ ! -z "${UNBLOCK_KEY}" ]; then
 fi
 
 # Call the new update-fields.sh script to update the schema
-curl -f -s "${DATAVERSE_URL}/api/admin/index/solr/schema${UNBLOCK_KEY}" | ./update-fields.sh ${TARGET}/schema.xml
+curl -f -s "${DATAVERSE_URL}/api/admin/index/solr/schema${UNBLOCK_KEY}" | ${SCRIPT_DIR}/update-fields.sh ${TARGET}/schema.xml
 
 # Reload the Solr collection
 echo "Triggering Solr RELOAD at ${SOLR_URL}/solr/admin/cores?action=RELOAD&core=collection1"
