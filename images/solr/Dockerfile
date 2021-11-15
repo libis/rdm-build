@@ -33,7 +33,7 @@ COPY scripts/* /opt/docker-solr/scripts/
 RUN rm /opt/solr/server/solr/configsets/_default/conf/managed-schema \
  && sed -i -e "s#<luceneMatchVersion>[0-9.]*</luceneMatchVersion>#<luceneMatchVersion>${SOLR_VERSION}</luceneMatchVersion>#" \
         /opt/solr/server/solr/configsets/_default/conf/solrconfig.xml \
- && chmod 755 /opt/docker-solr/scripts/updateSchemaMDB.sh
+ && chmod 755 /opt/docker-solr/scripts/updateSchema.sh
 
 # Run as solr user
 USER ${SOLR_USER}
