@@ -113,6 +113,8 @@ download-tools:
 	fi
 
 update-tools: download-tools
+	echo "Updating Gem bundle ..."
+	cd images/tools; bundle update; cd -
 	mkdir -p tools/images/rdmPyTools
 	for f in rdmPyTools/bin/* rdmPyTools/R/*; do name=$$(basename $$f); [[ -f $$f ]] &&cp $$f images/tools/rdmPyTools/$$name; done
 
