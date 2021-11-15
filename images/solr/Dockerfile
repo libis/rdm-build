@@ -7,7 +7,7 @@ USER root
 
 # Install Curl
 RUN apt-get update -qqy; \
-    DEBIAN_FRONTEND=noninteractive apt-get -qq --no-install-recommends install -qqy curl; \
+    DEBIAN_FRONTEND=noninteractive apt-get -qq --no-install-recommends install -qqy curl ed bc; \
     rm -rf /var/lib/apt/lists/*
 
 # Change solr user and group id
