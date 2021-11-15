@@ -97,4 +97,21 @@ def sftpGetFile(inHost, inUser, inKeyFile, inRemotePath, inRemoteFile, inLocalFi
     except Exception as e:
         logH.error(e.__class__.__name__+" occurred.")
         raise eu.fileTransferError
+
+def splitName(inString, logName = ''):
+    logH        = logging.getLogger(logName)
+    namesplit   = inString.split(", ", 1)
+    lastname    = namesplit[0]
+    if (len(namesplit)>1):
+        firstname = namesplit[1]
+        initials  = firstname[0]
+    else:
+        firstname = ''
+        initials  = ''
+    nameDict = {'lastname': lastname,
+                'firstname': firstname,
+                'initials': initials}
+    logH.debug('Name '+inString+' split into '+nameDict['lastname']+','+nameDict['firstname']+','+nameDict['initials'])
+    return(nameDict)
+        
     

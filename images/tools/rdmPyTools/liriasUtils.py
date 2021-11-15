@@ -15,6 +15,7 @@ import xml.etree.ElementTree as ET
 import errorUtils as eu
 import logging
 import urllib.parse
+import generalUtils as gu
 
 class liriasApi:
     def __init__(self, inBaseUrl, inApiUser, inApiPw, logName=''):
@@ -96,9 +97,60 @@ class liriasApi:
         try:
             inIdQuoted = urllib.parse.quote_plus(inId)
             resp = requests.delete(self.baseUrl+'/publication/records/'+inDataSource+'/'+inIdQuoted, auth=self.auth)
-            self.logger.info('delete finished '+str(resp.status_code))
+            self.logger.info('delete '+inId+' finished '+str(resp.status_code))
+            self.logger.info(self.baseUrl+'/publication/records/'+inDataSource+'/'+inIdQuoted)
         except Exception as e:
             self.logger.error("deleteDataSet: %s occured, inDataSource = %s, inId = %s",e.__class__.__name__, inDataSource, inId)
+            raise eu.liriasApiError()
+
+    def deleteRelationShips(self, inId):
+        try:
+            inIdQuoted = urllib.parse.quote_plus(inId)
+            self.logger.info('deleteRelationShips: '+self.baseUrl+'/publications/'+inIdQuoted+'/relationships')
+            resp = requests.get(self.baseUrl+'/publications/'+inIdQuoted+'/relationships', auth = self.auth)
+            self.logger.info('deleteRelationShips: '+str(resp.content)[0:80])
+            feed = ET.fromstring(resp.content)
+            entries = feed.findall('./atom:entry', self.ns)
+            for entry in entries:
+                entId   = entry.find('./api:relationship', self.ns).attrib['id']
+                entType = entry.find('./api:relationship', self.ns).attrib['type']
+                self.logger.info('deleteRelationShips: Found id : '+entId)
+                self.logger.info('deleteRelationShips: Found type : '+entType)
+                if (entType in ['publication-user-authorship','publication-publication-supplement'] and 
+                    entId != ''):
+                    self.logger.info("deleteRelationships: relation id="+str(entId)+", type="+str(entType)+" to be deleted")
+                    self.deleteRelationShip(entId)
+        except Exception as e:
+            self.logger.error("deleteRelationShips: %s occured, inId = %s",e.__class__.__name__,inId)
+            raise eu.liriasApiError()
+            
+    def deleteRelationShip(self, inRelId):
+        try:
+            self.logger.info(self.baseUrl+'/relationships/'+str(inRelId))
+            respR = requests.delete(self.baseUrl+'/relationships/'+inRelId, auth = self.auth)
+            self.logger.info('deleteRelationShip '+inRelId+' deleted')
+        except Exception as e:
+            self.logger.error('deleteRelationShip: %s occured, inRelId = %s',e.__class__.__name__,inRelId)
+            raise eu.liriasApiError()
+            
+
+    def getDataSetIdByDoi(self, inDataSource, inId):
+        try:
+            #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/publication/records/c-inst-1/RDR.CVHLQ2
+            inIdQuoted = urllib.parse.quote_plus(inId)
+            resp = requests.get(self.baseUrl+'/publication/records/'+inDataSource+'/'+inIdQuoted, auth = self.auth)    
+            ns = self.ns
+            feed = ET.fromstring(resp.content)
+            #☻usrObj = feed.find("./atom:entry/api:object[@category='publication' and @type='dataset']", ns).attrib['id']
+            usrObj = feed.find("./atom:entry/api:object[@category='publication']", ns).attrib['id']
+            self.logger.info('getDataSetByDoi('+inDataSource+','+inId+')')
+            self.logger.info(self.baseUrl+'/publication/records/'+inDataSource+'/'+inIdQuoted)
+            if (usrObj != ''):
+                return(str(usrObj))
+            else:
+                raise eu.liriasApiError('Could not find DataSet '+inDataSource+' '+inId)
+        except Exception as e:
+            self.logger.error("getDataSetByDoi: %s occured, %s, %s",e.__class__.__name__,inDataSource,inId)
             raise eu.liriasApiError()
     
     def getUserByKulId(self, userId):
@@ -137,6 +189,26 @@ class liriasApi:
                 raise eu.liriasApiError('Could not find user '+str(userId))
         except Exception as e:
             self.logger.error("getUserByKulUId: %s occured, userId = %s", e.__class__.__name__, userId)
+            raise eu.liriasApiError()
+    
+    def getUserNameByKULUid(self, userId):
+        try:
+            resp = requests.get(self.baseUrl+'/users?username='+userId, auth=self.auth)    
+            ns = self.ns
+            feed = ET.fromstring(resp.content)
+            resObj = feed.find('./api:pagination', ns)
+            resNbr = resObj.attrib['results-count']
+            if (resNbr == "1"):
+                usrName = feed.find("./atom:entry/atom:title", ns).text
+                if (usrName != ''):
+                    nameDict = gu.splitName(usrName, self.logger)
+                    return(nameDict)
+                else:
+                    raise eu.liriasApiError('Found user '+str(userId)+' but not the name')
+            else:
+                raise eu.liriasApiError('Could not find user '+str(userId))
+        except Exception as e:
+            self.logger.error("getUserNameByKulUId: %s occured, userId = %s", e.__class__.__name__, userId)
             raise eu.liriasApiError()
 
 def liriasAccessRights(inAR):

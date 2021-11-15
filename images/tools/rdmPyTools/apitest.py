@@ -33,7 +33,7 @@ else:
 
 
 
-optie = 1
+optie = 7
 
 if optie == 1:
     #get datafields for dataset template
@@ -62,22 +62,32 @@ if optie == 2:
     resp = requests.get(apiUrl+"/publications?query=type='Dataset'",auth = HTTPBasicAuth(apiUser,apiPw))
     print(resp.content)
 
-if optie == 5    :
+if optie == 6:
     fromF = 'c:/temp/rdm/in/test.txt'
     toD   = 'c:/temp/rdm/out/'
     shutil.move(fromF,toD)
 
-if optie == 3:        
+if optie == 3:      
+    #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/publication/records/c-inst-1/RDR.CVHLQ2
+    #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/publication/records/c-inst-1/RDR.PDV
+    vb = "RDR.LNYKYU"
+    vb = '2186487'
+    vb = "https://doi.org/10.80442/RDR.LNYKYU"
     resp = requests.get(apiUrl+"/publications/"+vb,auth = HTTPBasicAuth(apiUser,apiPw))
     print(resp.content)
 
 if optie == 4:    
-    userId = 89908 #◘89908
+
     #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/users?proprietary-id=89908
     #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/users?username=U0001290
     # print(apiUrl+'/users?proprietary-id='+str(userId))
     # print(apiUser+' '+apiPw)
-    resp = requests.get(apiUrl+'/users?proprietary-id='+str(userId), auth = HTTPBasicAuth(apiUser,apiPw))    
+
+    #userId = 89908 #◘89908
+    #♦resp = requests.get(apiUrl+'/users?proprietary-id='+str(userId), auth = HTTPBasicAuth(apiUser,apiPw))    
+
+    userId = "u0001290"
+    resp = requests.get(apiUrl+'/users?username='+str(userId), auth = HTTPBasicAuth(apiUser,apiPw))    
     #☺print(resp.content)
     ns = {'atom': "http://www.w3.org/2005/Atom",
           'api': "http://www.symplectic.co.uk/publications/api"}
@@ -89,13 +99,50 @@ if optie == 4:
     root = ET.fromstring(resp.content)
     resObj = root.find('./api:pagination', ns)
     resNbr = resObj.attrib['results-count']
+    print(resp.content)
     if (resNbr == "1"):
         usrObj = root.find("./atom:entry/api:object[@category='user']", ns).attrib['id']
+        usrName = root.find("./atom:entry/atom:title", ns).text
     else:
         usrObj = -1
+        usrName = ""
     print('userId = '+str(usrObj))
+    print('userName = '+str(usrName))
     #print(resp.content)
         
+    
+if optie == 5:
+    #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/publication/records/c-inst-1/RDR.CVHLQ2
+    inDataSource = "c-inst-1"
+    inId = "RDR.CVHLQ2"
+    inIdQuoted = urllib.parse.quote_plus(inId)
+    resp = requests.get(apiUrl+'/publication/records/'+inDataSource+'/'+inIdQuoted, auth = HTTPBasicAuth(apiUser,apiPw))    
+    ns = {'atom': "http://www.w3.org/2005/Atom",
+          'api': "http://www.symplectic.co.uk/publications/api"}
+    root = ET.fromstring(resp.content)
+    print(resp.content)
+    #☻usrObj = root.find("./atom:entry/api:object[@category='publication' and @type='dataset']", ns).attrib['id']
+    usrObj = root.find("./atom:entry/api:object[@category='publication']", ns).attrib['id']
+    print('pubId = '+str(usrObj))
+
+if optie == 7:
+    #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/publication/records/c-inst-1/RDR.CVHLQ2
+    id = "2186929"
+    resp = requests.get(apiUrl+'/publications/'+id+'/relationships', auth = HTTPBasicAuth(apiUser,apiPw))    
+    ns = {'atom': "http://www.w3.org/2005/Atom",
+          'api': "http://www.symplectic.co.uk/publications/api"}
+    root = ET.fromstring(resp.content)
+    print(resp.content)
+    entries = root.findall('./atom:entry', ns)
+    for entry in entries:
+        entId = entry.find('./api:relationship', ns).attrib['id']
+        entType = entry.find('./api:relationship', ns).attrib['type']
+        print(entId+':'+entType)
+        if (entType in ['publication-user-authorship','publication-publication-supplement']):
+            print("tobe deleted")
+            respR = requests.get(apiUrl+'/relationships/'+str(entId), auth = HTTPBasicAuth(apiUser,apiPw))    
+            #print(respR.content)
+
 
 
 sys.exit()

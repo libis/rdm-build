@@ -41,6 +41,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
     mergeLanguages  = opts.getboolean('flags', 'mergeLanguages', fallback = True)
     mergeAltTitles  = opts.getboolean('flags', 'mergeAltTitles', fallback = True)
     useContributorType = opts.getboolean('flags', 'useContributorType', fallback = False)
+    getUserNameViaApi = opts.getboolean('flags', 'getUserNameViaApi', fallback = True)
     #
     languagesSep    = opts.get('flags','languagesSep', fallback = '|')
     altTitlesSep    = opts.get('flags','altTitlesSep', fallback = '|')
@@ -79,6 +80,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
       data = json.load(f)
 
     relations = []
+    liriasId  = ''
     
     if (doDelete):
         try:
@@ -86,8 +88,21 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
         except Exception as e:
             logH.warning("Error dataVerseDataSet2Elements: %s occured. Trying to Delete %s in dataSource %s" % (e.__class__.__name__, data['identifier'], dataSource))
             logH.warning("dataVerseDataSet2Elements: Execution will proceed regardless")
-    
-
+    else:
+            logH.warning("dataVerseDataSet2Elements: doDelete = FALSE but looking for existence and possibly deleting existing relationships")  
+            try:
+                liriasId = readLiriasApi.getDataSetIdByDoi(dataSource, data['identifier'])
+                if (liriasId != ''):
+                    #delete existing relations
+                    try:
+                        writeLiriasApi.deleteRelationShips(liriasId)
+                    except Exception as e:
+                        logH.warning("Error dataVerseDataSet2Elements: %s occured.  Trying to Delete relaionships for %s",e.__class__.__name__,liriasId)
+                        logH.warning("dataVerseDataSet2Elements: Execution will proceed regardless")
+            except Exception as e:
+                logH.warning("Error dataVerseDataSet2Elements: %s occured. Trying to Find %s in dataSource %s" % (e.__class__.__name__, data['identifier'], dataSource))
+                logH.warning("dataVerseDataSet2Elements: Execution will proceed regardless")
+            
     apiNameSpace = 'http://www.symplectic.co.uk/publications/api'
     apiNameSpacePrefix = 'xmlns'
     ns =  {apiNameSpacePrefix:apiNameSpace}
@@ -101,21 +116,25 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
     impRecord.set('type-name','dataset')
     native = ET.SubElement(impRecord, "native")
     #Affiliation
+    logH.info('dataVerseDataSet2Elements affiliation')     
     af = ET.SubElement(native, "field", name = "c-affiliation")
     af.set('type', 'boolean')
     af.set('display-name',defCAffiliation)
     afB = ET.SubElement(af, "boolean")
     afB.text = "true"
     #Title
+    logH.info('dataVerseDataSet2Elements title')         
     if ('title' in data['metadata']):
         title = ET.SubElement(native, 'field', name='title')
         titleT = ET.SubElement(title, "text")
         titleT.text = data['metadata']['title']
     #AlternativeTitle 
+    logH.info('dataVerseDataSet2Elements alt.title')         
     if ('alternativeTitle' in data['metadata']):
         cntAltTitles = 0
         allAltTitles = ''
         for at in data['metadata']['alternativeTitle']:
+            logH.info('dataVerseDataSet2Elements alt.Title '+at)     
             cntAltTitles = cntAltTitles + 1
             if (cntAltTitles <= nbrAltTitles):
                 if (mergeAltTitles):
@@ -125,13 +144,14 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
                         allAltTitles = allAltTitles+altTitlesSep+at
                 else:
                     altTitle = ET.SubElement(native, 'field', name='c-alttitle')
-                    altTitleT = ET.SubElement(altTitle, "field", name = "text")
+                    altTitleT = ET.SubElement(altTitle, 'field', name = 'text')
                     altTitleT.text = at
         if (allAltTitles != '' and mergeAltTitles):
-            altTitle  = ET.SubElement(native, 'field', name = 'c-altttile')
-            altTitleT = ET.SubElement('altTitle', 'field', name = 'text')
+            altTitle  = ET.SubElement(native, 'field', name = 'c-alttitle')
+            altTitleT = ET.SubElement(altTitle, 'field', name = 'text')
             altTitleT.text = allAltTitles
     #DOI
+    logH.info('dataVerseDataSet2Elements authority')         
     if ('authority' in data and 'identifier' in data):
         doi = ET.SubElement(native, 'field', name='doi')
         doiT = ET.SubElement(doi, 'field', name='text')
@@ -142,6 +162,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
             doiLink.set('type', 'text')
             doiLink.set('href', data['persistentUrl'])
     #other ids
+    logH.info('dataVerseDataSet2Elements alternative identifiers')         
     if (altIdentifiers):
         if ('otherId' in data['metadata']):
             addId = ET.SubElement(native, 'field', name = 'c-additional-identifier')
@@ -150,24 +171,16 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
             for id in data['metadata']['otherId']:
                 addIdIt = ET.SubElement(addIdIts, 'item')
                 addIdIt.text = id['otherIdAgency']+'-'+id['otherIdValue']
-    
+    logH.info('dataVerseDataSet2Elements check authors')    
     #Authors
     if ('author' in data['metadata']):
         auts = ET.SubElement(native, 'field', name = 'authors')
         auts.set('type','person-list')
         ppl  = ET.SubElement(auts, 'people')
         for aut in data['metadata']['author']:
-            namesplit = aut['authorName'].split(", ", 1)
-            lastname = namesplit[0]
-            firstname = namesplit[1]
-            initials  = firstname[0]
+            logH.info('dataVerseDataSet2Elements: name = '+aut['authorName'])
+            nameDict  = gu.splitName(aut['authorName'], logName)
             prs = ET.SubElement(ppl, 'person')
-            ln = ET.SubElement(prs, 'last-name')
-            ln.text = lastname
-            fn = ET.SubElement(prs, 'first-names')
-            fn.text = firstname
-            ins = ET.SubElement(prs, 'initials')
-            ins.text = initials
             if ('authorIdentifierScheme' in aut and 'authorIdentifier' in aut):
                 if (aut['authorIdentifierScheme'] == "ORCID"):
                     if (ou.checkOrcid(aut['authorIdentifier'])):
@@ -177,12 +190,21 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
                             logH.info("dataVerseDataSet2Elements: userId found : "+userUId)
                             try:
                                 liriasUserId = readLiriasApi.getUserByKulUId(userUId)
+                                logH.info('dataVerseDataSet2Elements: liriasUserId = '+liriasUserId)
+                                if (getUserNameViaApi):
+                                    try:
+                                        userNameDict = readLiriasApi.getUserNameByKULUid(userUId)
+                                        nameDict     = userNameDict
+                                    except Exception as e:
+                                        logH.info('dataVerseDataSet2Elements: could not get username via Lirias APi '+str(userUId))
                                 if (inlineRelations):
+                                    logH.info('dataVerseDataSet2Elements: inlineRelations')
                                     lks = ET.SubElement(prs, "links")
                                     lk  = ET.SubElement(lks, "link", id = liriasUserId)
                                     lk.set('type',"elements/user")
                                     lk.set('href',readLiriasApi.getUsersApiURL()+liriasUserId)
                                 else:
+                                    logH.info('dataVerseDataSet2Elements: relationObject')
                                     relationObject = {
                                         'to-object': liriasUserId,
                                         'type-name': 'publication-user-authorship'}
@@ -190,6 +212,18 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
                             except Exception as e:
                                 logH.warning("Error dataVerseDataSet2Elements: %s occured. userId=%s" % (e.__class__.__name__, userUId))
                                 logH.warning("Warning dataVerseDataSet2Elements - trouble finding lirias userid based upon Kul Userid")
+            lastname  = nameDict['lastname']
+            firstname = nameDict['firstname']
+            initials  = nameDict['initials']
+            logH.info('dataVerseDataSet2Elements: nameSplit = '+lastname+','+firstname+','+initials)
+            ln = ET.SubElement(prs, 'last-name')
+            ln.text = lastname
+            if (firstname != ''):
+                fn = ET.SubElement(prs, 'first-names')
+                fn.text = firstname
+                ins = ET.SubElement(prs, 'initials')
+                ins.text = initials
+    logH.info('dataVerseDataSet2Elements check publications')    
     #related publications
     if ('publication' in data['metadata']):
         logH.info('related publications')
@@ -229,20 +263,17 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
         tf = ET.SubElement(native, 'field', name="medium")
         tfT = ET.SubElement(tf, 'text')
         tfT.text = data['metadata']['technicalFormat']
+    logH.info('dataVerseDataSet2Elements check contributors')    
     #contributor
     if ('contributor' in data['metadata']):
         cs = ET.SubElement(native, 'field',name='c-contributor')
         cs.set('type','person-list')
         csp = ET.SubElement(cs, 'people')
         for c in data['metadata']['contributor']:
-            namesplit = c['contributorName'].split(", ", 1)
-            lastname = namesplit[0]
-            if (len(namesplit)>1):
-                firstname = namesplit[1]
-                initials  = firstname[0]
-            else:
-                firstname = ''
-                initials  = ''
+            nameDict  = gu.nameSplit(c['contributorName'], logName)
+            lastname  = nameDict['lastname']
+            firstname = nameDict['firstname']
+            initials  = nameDict['initials']
             cspp = ET.SubElement(csp, 'person')
             csppln = ET.SubElement(cspp, 'last-name')
             csppln.text = lastname
@@ -259,6 +290,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
             for c in data['metadata']['contributor']:
                 csti = ET.SubElement(cstis, 'item')
                 csti.text = c['contributorType']
+    logH.info('dataVerseDataSet2Elements check grants')    
     #fund/grand
     if ('grantNumber' in data['metadata']):
         fas = ET.SubElement(native, 'field', name='funding-acknowledgements')
@@ -268,7 +300,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
         for g in data['metadata']['grantNumber']:
             if ('grantNumberValue' in g and 'grantNumberAgency' in g):
                 fassg = ET.SubElement(fassgs, 'grant')
-                fassgid = ET.SubElement(fassgs, 'grant-id')
+                fassgid = ET.SubElement(fassg, 'grant-id')
                 fassgid.text = g['grantNumberValue']
                 fassgorg = ET.SubElement(fassgs, 'organization')
                 fassgorg.text = g['grantNumberAgency']
@@ -314,6 +346,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
         pubT = ET.SubElement(pub, 'text')
         pubT.text = defPublisher     
         #Access
+    logH.info('dataVerseDataSet2Elements check accessrights')            
     accessRights = ''
     if ('access' in data['metadata']):
         if ('accessRights' in data['metadata']['access']):
@@ -335,6 +368,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
                 logH.warning('Error dataVerseDataSet2Elements: %s occured at liriasLegitimateOptOut %s' % (eLOU.__class__.__name__,data['metadata']['access']['legitimateOptout']))
                 logH.warning('\tContinuting regardless')
     #embargoDate
+    logH.info('dataVerseDataSet2Elements check embargoDate')    
     datum = ''
     if (accessRights == 'embargoed' and 'dateAvailable' in data['metadata']['access']):
         datum = dt.datetime.strptime(data['metadata']['access']['dateAvailable'], '%Y-%m-%d')
@@ -350,6 +384,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
         embDy.text = datum.strftime('%Y')
 
     #publication date
+    logH.info('dataVerseDataSet2Elements check publicationDate')    
     datum = ''
     if ('publicationDate' in data):
         datum = dt.datetime.strptime(data['publicationDate'], '%Y-%m-%d')
@@ -364,6 +399,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
         pubDy = ET.SubElement(pubDt, 'year')
         pubDy.text = datum.strftime('%Y')
     #License
+    logH.info('dataVerseDataSet2Elements check license')    
     if ('termsOfUse' in data):
         lic = ET.SubElement(native, 'field', name='c-license-data')
         licT = ET.SubElement(lic, 'text')
@@ -371,6 +407,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
         licT.text = licInfo
     
     # wrap it in an ElementTree instance, and save as XML
+    logH.info('dataVerseDataSet2Elements create XML tree')    
     tree = ET.ElementTree(impRecord)
     
     logH.info("dataVerseDataSet2Elements: Writing xml to "+workDir+inFileName+'.xml')
@@ -381,7 +418,10 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
     
     try:
         newId = writeLiriasApi.uploadDataset(dataSource, data['identifier'], ET.tostring(impRecord))
-        logH.info('dataVerseDataSet2Elements: newly loaded dataset : '+newId)
+        if (liriasId != ''):
+            logH.info('dataVerseDataSet2Elements: loaded dataset '+data['identifier']+': '+newId+' should equal '+liriasId)
+        else:
+            logH.info('dataVerseDataSet2Elements: loaded dataset '+data['identifier']+': '+newId)            
     except Exception as e:
         logH.error("Error dataVerseDataSet2Elements: %s occured. dataVerseId=%s" % (e.__class__.__name__, data['identifier']))
         logH.error('Error dataVerseDataSet2Elements: uploadDataSet Failed')
@@ -420,7 +460,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
                 except Exception as eMove:
                     logH.error('Error dataVerseDataSet2Eleements: %s occured at gu.moveFile('+inFile+','+handledDir+')', eMove.__class__.__name__)        
                     logH.error('File '+inFile+' not moved to '+handledDir)
-                #raise
+                raise
     
     #move input file to handled directory
     try:

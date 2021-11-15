@@ -36,11 +36,12 @@ def dataVerse2Elements(inConfigFile, logName = ''):
         for dataSet in gl.glob(inDir+"*.json"):
             if (os.path.isfile(dataSet)):
                 dataSetFileName = os.path.abspath(dataSet)
+                logH.info('dataVerse2Elements : current File '+dataSetFileName)
                 try:
-                    logH.info('dataVerse2Elements : current File '+dataSetFileName)
                     ds2el.dataVerseDataSet2Elements(inConfigFile, dataSetFileName, logName)
                 except Exception as e:
-                    logH.error("Error dataVerse2Elements : %s calling dataVerseDataSet2Elements (%s,%s,%s)",e.__class_name, inConfigFile, dataSetFileName, logName)
+                    #logH.warning("Error dataVerse2Elements : %s calling dataVerseDataSet2Elements (%s,%s,%s)",e.__class_name, inConfigFile, dataSetFileName, logName)
+                    logH.warning("Error dataVerse2Elements : calling dataVerseDataSet2Elements (%s,%s,%s)", inConfigFile, dataSetFileName, logName)
 
     except Exception as e:
         logH.error('Error dataVerse2Elements: %s',e.__class__.__name__)
