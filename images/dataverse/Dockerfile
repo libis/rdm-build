@@ -6,7 +6,9 @@ USER root
 
 # Install software
 RUN apt-get update -qqy; \
-    DEBIAN_FRONTEND=noninteractive apt-get -qq --no-install-recommends install -qqy jq imagemagick wget curl less unzip postgresql-client; \
+    echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections; \
+    DEBIAN_FRONTEND=noninteractive apt-get -qq --no-install-recommends install -qqy \
+    jq imagemagick wget curl less unzip postgresql-client ttf-mscorefonts-installer fontconfig; \
     rm -rf /var/lib/apt/lists/*
 
 # Change application user and group id
