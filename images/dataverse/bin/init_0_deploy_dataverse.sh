@@ -14,6 +14,8 @@
 if test -d "${DOMAIN_DIR}/applications/dataverse"
 then
   echo "Dataverse already deployed"
+  # Redeploy extra files, just to be sure
+  "${SCRIPT_DIR}/deploy.sh"
 else
   # fail on any error
   set -e

@@ -26,9 +26,8 @@ builtin_enable
 # Configure Solr location
 api PUT 'admin/settings/:SolrHostColonPort' -d "${SOLR_SERVICE_HOST}:${SOLR_SERVICE_PORT_HTTP}"
 
-# Copy and fix jHove configuration files
-cp "${DVINSTALL_DIR}/jhove"* "${DOMAIN_DIR}/config/"
-sed -i "${DOMAIN_DIR}/config/jhove.conf" -e "s#file://.*/jhoveConfig\.xsd#file://${DOMAIN_DIR}/config/jhoveConfig.xsd#g"
+# Deploy extra files
+"${SCRIPT_DIR}/deploy.sh"
 
 # Configure final security settings
 api_by_token
