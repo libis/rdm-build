@@ -4,7 +4,7 @@ require 'dotenv/load'
 require 'dataverse'
 require 'fileutils'
 
-root_dv = Dataverse::Dataverse.id('kul')
+root_dv = Dataverse::Dataverse.id('rdr')
 
 root_dv.each_dataset do |ds|
   next unless ds.version(:published)

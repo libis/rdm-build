@@ -10,7 +10,7 @@ CSV.foreach("#{ENV['DATA_DIR']}/orcid.csv") do |row|
   orcid_map[row.last.downcase] = row.first.downcase
 end
 
-root_dv = Dataverse::Dataverse.id('kul')
+root_dv = Dataverse::Dataverse.id('rdr')
 
 storage_map = {}
 error_ds = []
