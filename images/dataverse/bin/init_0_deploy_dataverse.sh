@@ -10,12 +10,9 @@
 # Include some sane defaults
 . "${SCRIPT_DIR}/default.config"
 
-# Add Dataverse app to deploy dir
 if test -d "${DOMAIN_DIR}/applications/dataverse"
 then
   echo "Dataverse already deployed"
-  # Redeploy extra files, just to be sure
-  "${SCRIPT_DIR}/deploy.sh"
 else
   # fail on any error
   set -e
@@ -142,6 +139,24 @@ EOF
     echo "create-system-properties ${KEY}=${v}" >> "${DV_POSTBOOT}"
   done
 
+  # Production performance configuration
+  ######################################
+  echo "Performance settings ..."
+
+  echo "  - java heap"
+  echo "delete-jvm-options '-Xmx512m'" >> "${DV_POSTBOOT}"
+  echo "create-jvm-options '-Xmx2048m:-Xms2048m'" >> "${DV_POSTBOOT}"
+  
+  echo "  - no development options"
+  echo "set configs.config.server-config.admin-service.das-config.dynamic-reload-enabled=false" >> "${DV_POSTBOOT}"
+  echo "set configs.config.server-config.admin-service.das-config.autodeploy-enabled=false" >> "${DV_POSTBOOT}"
+
+  echo "  - disable jsp dynamic reloading"
+  sed -i 's#<servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>#<servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>\n    <init-param>\n      <param-name>development</param-name>\n      <param-value>false</param-value>\n    </init-param>\n    <init-param>\n      <param-name>genStrAsCharArray</param-name>\n      <param-value>true</param-value>\n    </init-param>#' ${DOMAIN_DIR}/config/default-web.xml
+
+  echo "  - disable https listener"
+  echo "set configs.config.server-config.network-config.network-listeners.network-listener.http-listener-2.enabled=false" >> "${DV_POSTBOOT}"
+  
   # Deploy Dataverse war file
   ###########################
   echo "Deploying Dataverse application"
@@ -169,3 +184,5 @@ EOF
   echo "--------------------------------------------------"
 
 fi
+
+"${SCRIPT_DIR}/deploy.sh"
