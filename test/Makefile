@@ -93,7 +93,7 @@ mkdirs:
 
 .PHONY: bootstrap
 bootstrap: ### First time configuration script for new dataverse installation
-	docker-compose exec dataverse scripts/bootstrap-job.sh
+	docker-compose exec dataverse bootstrap-job.sh
 
 .PHONY: solr_config
 solr_config:
@@ -157,4 +157,4 @@ shell-%: ### start shell in running docker container
 
 .PHONY: reindex
 reindex: ### Force reindexing of all Dataverse collections and datasets
-	docker-compose exec dataverse custominstall/reindex.sh
+	docker-compose exec dataverse /opt/payara/custominstall/reindex.sh
