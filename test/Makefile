@@ -73,7 +73,7 @@ DIRS := $(DV_FILES) $(DV_DUMPS) $(DV_UPLOADS) $(DV_LANG_DIR) $(DB_DATA) $(INDEX_
 				$(PROXY_LOGS)/httpd $(PROXY_LOGS)/shib $(DBADMIN_DATA) $(DBADMIN_LOGS) $(TOOLS_DATA) $(TOOLS_SCRIPTS)
 
 .PHONY: reset ### Reset the installation - deletes all data, including database and index
-reset: down rmdirs rmvols mkdirs certificates up wait_dv bootstrap solr_config restart solr_update reindex ### Stops all services and clears all the data. ALL DATA WILL BE PERMANENTLY LOST!!
+reset: down rmdirs rmvols mkdirs up wait_dv bootstrap solr_config restart solr_update reindex ### Stops all services and clears all the data. ALL DATA WILL BE PERMANENTLY LOST!!
 
 .PHONY: customize
 customize:
@@ -102,37 +102,6 @@ solr_config:
 .PHONY: solr_update
 solr_update:
 	docker-compose exec index updateSchema.sh -d http://dataverse:8080 -t /var/solr/data/collection1/conf -u /run/secrets/api_key || true
-
-.PHONY: certificates
-certificates: ssl-certs shib-certs
-
-.PHONY: ssl-certs
-ssl-certs:
-	[ -f config/proxy/certs/ssl.crt ] || \
-		openssl req -x509 -new -newkey rsa:4096 -nodes -keyout config/proxy/certs/ssl.key -out config/proxy/certs/ssl.crt \
-		-subj "/CN=$(FQDN)/emailAddress=root@$(FQDN)"
-
-.PHONY: shib-certs
-shib-certs: 
-	echo "# OpenSSL configuration file for creating keypair" > /tmp/sp-cert.cnf
-	echo "[req]" >> /tmp/sp-cert.cnf
-	echo "prompt=no" >> /tmp/sp-cert.cnf
-	echo "default_bits=3072" >> /tmp/sp-cert.cnf
-	echo "encrypt_key=no" >> /tmp/sp-cert.cnf
-	echo "default_md=sha256" >> /tmp/sp-cert.cnf
-	echo "distinguished_name=dn" >> /tmp/sp-cert.cnf
-	echo "# PrintableStrings only" >> /tmp/sp-cert.cnf
-	echo "string_mask=MASK:0002" >> /tmp/sp-cert.cnf
-	echo "x509_extensions=ext" >> /tmp/sp-cert.cnf
-	echo "[dn]" >> /tmp/sp-cert.cnf
-	echo "CN=$(FQDN)" >> /tmp/sp-cert.cnf
-	echo "[ext]" >> /tmp/sp-cert.cnf
-	echo "subjectAltName=DNS:$(FQDN),URI:https://$(FQDN)/shibboleth" >> /tmp/sp-cert.cnf
-	echo "subjectKeyIdentifier=hash" >> /tmp/sp-cert.cnf
-	[ -f config/proxy/certs/sp-encrypt-cert.pem ] || \
-		openssl req -config /tmp/sp-cert.cnf -new -x509 -days 36524 -keyout config/proxy/certs/sp-encrypt-key.pem -out config/proxy/certs/sp-encrypt-cert.pem
-	[ -f config/proxy/certs/sp-signing-cert.pem ] || \
-	openssl req -config /tmp/sp-cert.cnf -new -x509 -days 36524 -keyout config/proxy/certs/sp-signing-key.pem -out config/proxy/certs/sp-signing-cert.pem
 
 # ADMIN TASKS 
 ######################################################################################################################

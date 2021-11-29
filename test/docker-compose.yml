@@ -9,12 +9,11 @@ services:
     networks:
       - apps
     ports:
-      - "7000:443"
+      - "7000:81"
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./config/proxy/conf.d/ssl.conf:/etc/httpd/conf.d/ssl.conf
       - ./config/proxy/shibboleth/shibboleth2.xml:/etc/shibboleth/shibboleth2.xml
-      - ./config/proxy/certs:/etc/pki/rdm
       - ${PROXY_LOGS}/httpd:/var/log/httpd
       - ${PROXY_LOGS}/shib:/var/log/shibboleth
       - ./config/proxy/html:/var/www/html
@@ -78,7 +77,7 @@ services:
       DATAVERSE_SERVICE_HOST: "localhost"
       DATAVERSE_SERVICE_PORT_HTTP: 8080
       dataverse_fqdn: "${FQDN}"
-      dataverse_siteUrl: "https://${FQDN}"
+      dataverse_siteUrl: "${DATAVERSE_URL_PREFIX}://${FQDN}"
       doi_provider: "FAKE"
       db_SystemEmail: ${MAIL_SENDER_NAME}
       CUSTOM_INSTALL: "/opt/payara/custominstall"
