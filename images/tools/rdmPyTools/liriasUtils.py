@@ -133,6 +133,27 @@ class liriasApi:
             self.logger.error('deleteRelationShip: %s occured, inRelId = %s',e.__class__.__name__,inRelId)
             raise eu.liriasApiError()
             
+    def getPublicationElementsId(self, inId, searchSourcesDict):
+        #search for the inId in all elements sources defined in the searchSourcesDict dictionary
+        Found       = False
+        inIdQuoted  = urllib.parse.quote_plus(inId)
+        #self.logger.error('getPublicationElementsID - '+inIdQuoted)
+        for src in searchSourcesDict.values():
+            #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/publication/records/c-inst-1/RDR.CVHLQ2
+            self.logger.error('getPublicationElementsID - Trying '+src+' : '+self.baseUrl+'/publication/records/'+src+'/'+inIdQuoted)
+            resp = requests.get(self.baseUrl+'/publication/records/'+src+'/'+inIdQuoted, auth = self.auth)    
+            root = ET.fromstring(resp.content)
+            try:
+                usrObj = root.find("./atom:entry/api:object[@category='publication']", self.ns).attrib['id']
+                self.logger.info('getPublicationElementsId - Source '+src+' pubId = '+str(usrObj))
+                return(str(usrObj))
+                break
+            except Exception as e:
+                self.logger.info('getPublicationElementsId - Source '+src+' error '+self.interpretError(resp))
+                #continuing with for loop
+        if (not Found):
+            self.logger.error('getPublicationElementsId - Error - could not find Elements id for '+inId)
+            raise eu.liriasApiError()
 
     def getDataSetIdByDoi(self, inDataSource, inId):
         try:

@@ -14,6 +14,7 @@ from requests.auth import HTTPBasicAuth
 import xml.etree.ElementTree as ET
 import urllib.parse
 import shutil
+import generalUtils as ge
 
 useTest = True
 if (useTest):
@@ -33,7 +34,7 @@ else:
 
 
 
-optie = 7
+optie = 10
 
 if optie == 1:
     #get datafields for dataset template
@@ -71,8 +72,8 @@ if optie == 3:
     #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/publication/records/c-inst-1/RDR.CVHLQ2
     #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/publication/records/c-inst-1/RDR.PDV
     vb = "RDR.LNYKYU"
-    vb = '2186487'
-    vb = "https://doi.org/10.80442/RDR.LNYKYU"
+    #♥vb = '2186487'
+    #vb = "https://doi.org/10.80442/RDR.LNYKYU"
     resp = requests.get(apiUrl+"/publications/"+vb,auth = HTTPBasicAuth(apiUser,apiPw))
     print(resp.content)
 
@@ -115,6 +116,7 @@ if optie == 5:
     #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/publication/records/c-inst-1/RDR.CVHLQ2
     inDataSource = "c-inst-1"
     inId = "RDR.CVHLQ2"
+    inId = "wst.2001.0759"
     inIdQuoted = urllib.parse.quote_plus(inId)
     resp = requests.get(apiUrl+'/publication/records/'+inDataSource+'/'+inIdQuoted, auth = HTTPBasicAuth(apiUser,apiPw))    
     ns = {'atom': "http://www.w3.org/2005/Atom",
@@ -128,7 +130,10 @@ if optie == 5:
 if optie == 7:
     #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/publication/records/c-inst-1/RDR.CVHLQ2
     id = "2186929"
-    resp = requests.get(apiUrl+'/publications/'+id+'/relationships', auth = HTTPBasicAuth(apiUser,apiPw))    
+    id = "2161118"
+    id = "2192678"
+    #resp = requests.get(apiUrl+'/publications/'+id+'/relationships', auth = HTTPBasicAuth(apiUser,apiPw))    
+    resp = requests.get(apiUrl+'/publications/'+id, auth = HTTPBasicAuth(apiUser,apiPw))    
     ns = {'atom': "http://www.w3.org/2005/Atom",
           'api': "http://www.symplectic.co.uk/publications/api"}
     root = ET.fromstring(resp.content)
@@ -143,7 +148,77 @@ if optie == 7:
             respR = requests.get(apiUrl+'/relationships/'+str(entId), auth = HTTPBasicAuth(apiUser,apiPw))    
             #print(respR.content)
 
+if optie == 8:
+    elementsSourcesDict = {
+        2147483646 : "c-inst-1",
+        1 : "manual",
+        3 : "wos",
+        2 : "pubmed",
+        18 : "epmc",
+        13 : "crossref",
+        17 : "figshare",
+        6 : "dblp",
+        7 : "scopus",
+        5 : "arxiv",
+        24 : "dspace",
+        16 : "google-books",
+        4 : "isi-proceedings",
+        15 : "scival",
+        11 : "wos-lite",
+        8 : "cinii-english",
+        2147483647 : "c-inst-2",
+        12 : "repec",
+        9 : "cinii-japanese",
+        21 : "figshare-for-institutions",
+        22 : "ssrn",
+        23 : "digital-commons",
+        25 : "mla",
+        26 : "dimensions-for-universities",
+        27 : "r3",
+        28 : "eprints",
+        10 : "dimensions",
+        29 : "hyrax",
+        19 : "orcid",
+        20 : "elements"}
 
+    Found = False
+    inId = "10.2166/wst.2001.0759"
+    inIdQuoted = urllib.parse.quote_plus(inId)
+    ns = {'atom': "http://www.w3.org/2005/Atom",
+          'api': "http://www.symplectic.co.uk/publications/api"}
+    for src in elementsSourcesDict.values():
+        #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/publication/records/c-inst-1/RDR.CVHLQ2
+        print('Trying '+src+' : '+apiUrl+'/publication/records/'+src+'/'+inIdQuoted)
+        resp = requests.get(apiUrl+'/publication/records/'+src+'/'+inIdQuoted, auth = HTTPBasicAuth(apiUser,apiPw))    
+        root = ET.fromstring(resp.content)
+        #print(resp.content)
+        #☻usrObj = root.find("./atom:entry/api:object[@category='publication' and @type='dataset']", ns).attrib['id']
+        try:
+            usrObj = root.find("./atom:entry/api:object[@category='publication']", ns).attrib['id']
+            print('Source '+src+' pubId = '+str(usrObj))
+            break
+        except Exception as e:
+            print('Source '+src+' error '+str(resp.content))
+            print('Continuing...')
+
+if optie == 9:
+    dois = ["http://doi.org/10.80442/RDR.JLKEHJ","10.80442/RDR.JLKEHJ","DOI: 10.1080/15588742.2015.1017687",
+            "https://doi.org/10.1080/15588742.2015.1017687"]
+    for doi in dois:
+        sdoi = ge.parseDOI(doi)
+        print(sdoi)
+        
+    handles = ["http://hdl.handle.net/11304/6eacaa76-c275-11e4-ac7e-860aa0063d1f",
+               "http://hdl.handle.net/11304/9fb5e092-7018-11e4-ac7e-860aa0063d1f",
+               "/234",
+               "123/"]
+    for handle in handles:
+        shandle = ge.parseHandle(handle)
+        print(shandle)
+        
+if optie == 10:
+    elementsSources = '[{"2147483646":"c-inst-1","1":"manual","3":"wos","2":"pubmed","18":"epmc","13":"crossref","17":"figshare","6":"dblp","7":"scopus","5":"arxiv","24":"dspace","16":"google-books","4":"isi-proceedings","15":"scival","11":"wos-lite","8":"cinii-english","2147483647":"c-inst-2","12":"repec","9":"cinii-japanese","21":"figshare-for-institutions","22":"ssrn","23":"digital-commons","25":"mla","26":"dimensions-for-universities","27":"r3","28":"eprints","10":"dimensions","29":"hyrax","19":"orcid","20":"elements"}]'
+    dt = json.loads(elementsSources)
 
 sys.exit()
 

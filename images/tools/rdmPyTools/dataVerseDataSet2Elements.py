@@ -42,6 +42,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
     mergeAltTitles  = opts.getboolean('flags', 'mergeAltTitles', fallback = True)
     useContributorType = opts.getboolean('flags', 'useContributorType', fallback = False)
     getUserNameViaApi = opts.getboolean('flags', 'getUserNameViaApi', fallback = True)
+    useLabels       = opts.getboolean('flags', 'useLabels', fallback = False)
     #
     languagesSep    = opts.get('flags','languagesSep', fallback = '|')
     altTitlesSep    = opts.get('flags','altTitlesSep', fallback = '|')
@@ -51,6 +52,8 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
     #defaults
     defPublisher    = opts.get('defaults','publisher', fallback = 'RDR KU Leuven')
     defCAffiliation = opts.get('defaults','c-affiliation', fallback = 'This is a dataset by (a) KU Leuven author(s)')
+    defVirtualCollectionScheme = opts.get('defaults','virtualCollectionScheme', fallback = 'c-virtual-collection')
+    defVODLScheme   = opts.get('defaults','VODLScheme', fallback = 'c-vlaamse-onderzoeksdisciplines')
     #ORCID
     orcidDir    = opts.get('ORCID','orcidDir')
     orcidFile   = opts.get('ORCID','orcidFile')
@@ -61,6 +64,18 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
     readApiPw   = opts.get('elementsApi','readApiPw', raw=True)
     writeApiUser= opts.get('elementsApi','writeApiUser')
     writeApiPw  = opts.get('elementsApi','writeApiPw', raw=True)
+    elementsSources = opts.get('elementsApi','elementsSources')
+    if (elementsSources != ''):
+        try:
+            elementsSourcesDict = json.loads(str(elementsSources))
+        except Exception as e:
+            logH.info('dataVerseDataSet2Elements config error trying to read elementsSources dict information '+e.__class__.__name__)
+            elementsSourcesDict = {"0":dataSource}
+    else:
+        elementsSourcesDict = {"0":dataSource} #by default c-inst-1 will be considered
+
+    # for dva in elementsSourcesDict.values():
+    #     logH.info('dataVerseDataSet2Elements sources Dict contents: '+dva)
     
     logH.info('dataVerseDataSet2Elements config settings loaded')
     
@@ -81,7 +96,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
 
     relations = []
     liriasId  = ''
-    
+
     if (doDelete):
         try:
             writeLiriasApi.deleteDataset(dataSource, data['identifier'])
@@ -228,12 +243,67 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
     if ('publication' in data['metadata']):
         logH.info('related publications')
         for pub in data['metadata']['publication']:
-            if ('liriasSourceID' in pub):
-                logH.info('related publication: '+str(pub['liriasSourceID']))
-                relationObject = {
-                    'to-object': str(pub['liriasSourceID']),
-                    'type-name' : 'publication-publication-supplement'}
-                relations.append(relationObject)
+            if (pub['publicationIDType'] == 'doi'):
+                logH.info('related publication : DOI to be checked '+str(pub['publicationIDNumber']))
+                relationErrorFound = False
+                try:
+                    currDOI      = gu.parseDOI(pub['publicationIDNumber'])
+                    logH.info('related publication : DOI to be checked parsed '+currDOI)
+                    currLiriasID = readLiriasApi.getPublicationElementsId(currDOI, elementsSourcesDict)
+                    logH.info('related publication: '+currLiriasID)
+                    relationObject = {
+                        'to-object': currLiriasID,
+                        'type-name' : 'publication-publication-supplement'}
+                    relations.append(relationObject)
+                except eu.doiParseError as ae:
+                    logH.info('related publication doi sanity check failed '+pub['publicationIDNumber'])
+                    relationErrorFound = True
+                except eu.liriasApiError as de:
+                    logH.info('related publication : could not find ElementsID for '+currDOI)
+                    relationErrorFound = True
+                except Exception as e:
+                    logH.info('related publication : undefined error '+e.__class__.__name__+' for '+pub['publicationIDNumber'])
+                    relationErrorFound = True
+                if (relationErrorFound and 'liriasSourceID' in pub):
+                    logH.info('related publication: '+str(pub['liriasSourceID']))
+                    relationObject = {
+                        'to-object': str(pub['liriasSourceID']),
+                        'type-name' : 'publication-publication-supplement'}
+                    relations.append(relationObject)
+            elif (pub['publicationIDType'] == 'handle'):
+                logH.info('related publication : Handle to be checked '+str(pub['publicationIDNumber']))
+                relationErrorFound = False
+                try:
+                    currHandle   = gu.parseHandle(pub['publicationIDNumber'])
+                    currLiriasID = readLiriasApi.getPublicationElementsId(currHandle, elementsSourcesDict)
+                    logH.info('related publication: '+currLiriasID)
+                    relationObject = {
+                        'to-object': currLiriasID,
+                        'type-name' : 'publication-publication-supplement'}
+                    relations.append(relationObject)
+                except eu.handleParseError as ae:
+                    logH.info('related publication Handle sanity check failed '+pub['publicationIDNumber'])
+                    relationErrorFound = True
+                except eu.liriasApiError as de:
+                    logH.info('related publication : could not find ElementsID for '+currHandle)
+                    relationErrorFound = True
+                except Exception as e:
+                    logH.info('related publication : undefined error '+e.__class__.__name__+' for '+pub['publicationIDNumber'])
+                    relationErrorFound = True
+                if (relationErrorFound and 'liriasSourceID' in pub):
+                    logH.info('related publication: '+str(pub['liriasSourceID']))
+                    relationObject = {
+                        'to-object': str(pub['liriasSourceID']),
+                        'type-name' : 'publication-publication-supplement'}
+                    relations.append(relationObject)
+            else:
+                if ('liriasSourceID' in pub):
+                    logH.info('related publication: '+str(pub['liriasSourceID']))
+                    relationObject = {
+                        'to-object': str(pub['liriasSourceID']),
+                        'type-name' : 'publication-publication-supplement'}
+                    relations.append(relationObject)
+
     #abstract
     cntAbstracts = 0
     if ('dsDescription' in data['metadata']):
@@ -249,31 +319,23 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
             abstr = ET.SubElement(native, 'field', name="abstract")
             abstrT = ET.SubElement(abstr, 'text')
             abstrT.text = abstractText
-    #keywords/subjects
-    if ('keyword' in data['metadata']):
-        kwL = ET.SubElement(native, 'field', name='keywords')
-        kwL.set('type','keyword-list')
-        kwLs = ET.SubElement(kwL, 'keywords')
-        for kw in data['metadata']['keyword']:
-            if (kw['keywordValue'] != ''):
-                kwE = ET.SubElement(kwLs, 'keyword')
-                kwE.text = kw['keywordValue']
     #Format
     if ('technicalFormat' in data['metadata']):
         tf = ET.SubElement(native, 'field', name="medium")
         tfT = ET.SubElement(tf, 'text')
         tfT.text = data['metadata']['technicalFormat']
-    logH.info('dataVerseDataSet2Elements check contributors')    
     #contributor
     if ('contributor' in data['metadata']):
+        logH.info('dataVerseDataSet2Elements check contributors')    
         cs = ET.SubElement(native, 'field',name='c-contributor')
         cs.set('type','person-list')
         csp = ET.SubElement(cs, 'people')
         for c in data['metadata']['contributor']:
-            nameDict  = gu.nameSplit(c['contributorName'], logName)
+            nameDict  = gu.splitName(c['contributorName'], logName)
             lastname  = nameDict['lastname']
             firstname = nameDict['firstname']
             initials  = nameDict['initials']
+            logH.info('dataVerseDataSet2Elements: contributor nameSplit = '+lastname+','+firstname+','+initials)
             cspp = ET.SubElement(csp, 'person')
             csppln = ET.SubElement(cspp, 'last-name')
             csppln.text = lastname
@@ -299,12 +361,14 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
         fassgs = ET.SubElement(fass, 'grants')
         for g in data['metadata']['grantNumber']:
             if ('grantNumberValue' in g and 'grantNumberAgency' in g):
+                logH.info('dataVerseDataSet2Elements grant - '+g['grantNumberValue']+' '+g['grantNumberAgency'])
                 fassg = ET.SubElement(fassgs, 'grant')
                 fassgid = ET.SubElement(fassg, 'grant-id')
                 fassgid.text = g['grantNumberValue']
-                fassgorg = ET.SubElement(fassgs, 'organization')
+                fassgorg = ET.SubElement(fassg, 'organisation')
                 fassgorg.text = g['grantNumberAgency']
     #language
+    logH.info('dataVerseDataSet2Elements check language')        
     if ('language' in data['metadata']):
         if (mergeLanguages):
             langs = ""
@@ -322,20 +386,53 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
                 lanT = ET.SubElement(lan, 'text')
                 lanT.text = l
     #technical info
+    logH.info('dataVerseDataSet2Elements check technical information')        
     if ('technicalInformation' in data['metadata']):
         ti = ET.SubElement(native, 'field', name='c-technicalinfo')
         tiT = ET.SubElement(ti, 'text')
         tiT.text = data['metadata']['technicalInformation']                        
-    #virtual collection
-    if ('virtualCollection' in data['metadata']):
-        flds = ET.SubElement(native, 'fields')
-        fld  = ET.SubElement(flds, 'field', name='labels')
-        fld.set('type','keyword-list')
-        fldkws = ET.SubElement(fld, 'keywords')
-        for vc in data['metadata']['virtualCollection']:
-            fldkw = ET.SubElement(fldkws, 'keyword', scheme=vc)
-            fldkw.text = vc
+    #keywords/subjects
+    logH.info('dataVerseDataSet2Elements check keywords and subjects')        
+    if ('keyword' in data['metadata'] or 
+        'subject' in data['metadata'] or
+        'virtualCollection' in data['metadata']):
+        if (useLabels):
+            flds = ET.SubElement(native, 'fields')
+            fld  = ET.SubElement(flds, 'field', name='labels')
+            fld.set('type','keyword-list')
+            fldkws = ET.SubElement(fld, 'keywords')
+        else:
+            fld = ET.SubElement(native, 'field', name='keywords')
+            fld.set('type','keyword-list')
+            fldkws = ET.SubElement(fld, 'keywords')
+        #KeyWords
+        if ('keyword' in data['metadata']):
+            logH.info('dataVerseDataSet2Elements check keyword')        
+            for kw in data['metadata']['keyword']:
+                if (kw['keywordValue'] != ''):
+                    if ('keywordVocabulary' in kw):
+                        if (kw['keywordVocabulary'] == 'MeSH'):
+                            fldkw = ET.SubElement(fldkws, 'keyword', scheme = 'mesh')
+                        else:
+                            fldkw = ET.SubElement(fldkws, 'keyword')
+                    else:
+                        fldkw = ET.SubElement(fldkws, 'keyword')
+                    fldkw.text = kw['keywordValue']
+        #VODL -> subjects
+        if ('subject' in data['metadata']):
+            logH.info('dataVerseDataSet2Elements check subject')        
+            for sb in data['metadata']['subject']:
+                    fldkw = ET.SubElement(fldkws, 'keyword', scheme = defVODLScheme)
+                    fldkw.text = sb
+        #virtual collection
+        #UseLabels = False -> include them in the keywords field instead of in a separate "labels" field
+        if ('virtualCollection' in data['metadata']):
+            logH.info('dataVerseDataSet2Elements check virtualCollection')        
+            for vc in data['metadata']['virtualCollection']:
+                fldkw = ET.SubElement(fldkws, 'keyword', scheme = defVirtualCollectionScheme)
+                fldkw.text = vc
     #Publisher
+    logH.info('dataVerseDataSet2Elements check publisher')    
     if ('publisher' in data):
         #use default setting anyway - this 'if' statement is in fact unnecessary
         pub = ET.SubElement(native, 'field', name='publisher')
@@ -400,11 +497,23 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
         pubDy.text = datum.strftime('%Y')
     #License
     logH.info('dataVerseDataSet2Elements check license')    
-    if ('termsOfUse' in data):
-        lic = ET.SubElement(native, 'field', name='c-license-data')
-        licT = ET.SubElement(lic, 'text')
-        licInfo = extractLicenseInfo(data['termsOfUse'])
-        licT.text = licInfo
+    licenseAdded = False
+    if ('license' in data):
+        if (str(data['license']['uri']) != '' and not(data['license']['uri'] is None)):
+            licenseAdded = True
+            logH.info('dataVerseDataSet2Elements license uri is not None : '+str(data['license']['uri']))
+            lic = ET.SubElement(native, 'field', name='c-license-data')
+            licT = ET.SubElement(lic, 'text')
+            licT.text = data['license']['uri']
+
+    if (not licenseAdded):
+        logH.info('dataVerseDataSet2Elements check termsOfUse for license')    
+        if ('termsOfUse' in data):
+            licenseAdded = True
+            lic = ET.SubElement(native, 'field', name='c-license-data')
+            licT = ET.SubElement(lic, 'text')
+            licInfo = extractLicenseInfo(data['termsOfUse'])
+            licT.text = licInfo
     
     # wrap it in an ElementTree instance, and save as XML
     logH.info('dataVerseDataSet2Elements create XML tree')    

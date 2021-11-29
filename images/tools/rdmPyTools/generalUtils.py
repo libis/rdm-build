@@ -5,6 +5,7 @@ Created on Thu May  6 13:40:16 2021
 @author: PieterDV
 """
 import os
+import re
 import sys
 import configparser
 from ftplib import FTP, FTP_TLS
@@ -100,18 +101,44 @@ def sftpGetFile(inHost, inUser, inKeyFile, inRemotePath, inRemoteFile, inLocalFi
 
 def splitName(inString, logName = ''):
     logH        = logging.getLogger(logName)
-    namesplit   = inString.split(", ", 1)
-    lastname    = namesplit[0]
-    if (len(namesplit)>1):
-        firstname = namesplit[1]
-        initials  = firstname[0]
-    else:
-        firstname = ''
-        initials  = ''
-    nameDict = {'lastname': lastname,
-                'firstname': firstname,
-                'initials': initials}
-    logH.debug('Name '+inString+' split into '+nameDict['lastname']+','+nameDict['firstname']+','+nameDict['initials'])
-    return(nameDict)
+    try:
+        namesplit   = inString.split(", ", 1)
+        lastname    = namesplit[0]
+        if (len(namesplit)>1):
+            firstname = namesplit[1]
+            initials  = firstname[0]
+        else:
+            firstname = ''
+            initials  = ''
+        nameDict = {'lastname': lastname,
+                    'firstname': firstname,
+                    'initials': initials}
+        logH.info('Name '+inString+' split into '+nameDict['lastname']+','+nameDict['firstname']+','+nameDict['initials'])
+        return(nameDict)
+    except Exception as e:
+        logH.info(e.__class__.__name__+" occured.  Returning: "+inString+" as lastname")
+        nameDict = {'lastname': inString,
+                    'firstname': '',
+                    'initials': ''}
+        return(nameDict)
+
+def parseDOI(inDOI, logName = ''):
+    logH   = logging.getLogger(logName)
+    try:
+        tmpDOI = re.findall(r"[^/]+/[^/]+$", inDOI)
+        outDOI = re.sub(r"\s*[dD][oO][iI]\s*:\s*","",tmpDOI[0])
+        return(outDOI)
+    except Exception as e:
+        logH.info(e.__class__.__name__+" occured.  No valid DOI: "+inDOI)
+        raise eu.doiParseError
+
+def parseHandle(inHandle, logName = ''):
+    logH = logging.getLogger(logName)
+    try:
+        outHandle = tmpDOI = re.findall(r"[^/]+/[^/]+$", inHandle)
+        return(outHandle[0])
+    except Exception as e:
+        logH.info(e.__class__.__name__+" occured.  No valid handle: "+inHandle)
+        raise eu.handleParseError
         
     
