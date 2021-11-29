@@ -12,8 +12,6 @@ CUSTOM_INSTALL=${CUSTOM_INSTALL:-/tmp}
 OVERWRITE_DIR="${OVERWRITE_DIR:-${CUSTOM_INSTALL}/overwrite}"
 CUSTOM_DATA="${CUSTOM_DATA:-${CUSTOM_INSTALL}/data}"
 
-[[ -f ${DOMAIN_DIR}/.adminKey ]] && export adminKey="$(cat ${DOMAIN_DIR}/.adminKey)"
-
 # Retrieve the object name from the file name
 #############################################
 obj_name() {

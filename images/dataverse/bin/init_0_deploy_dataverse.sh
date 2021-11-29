@@ -36,8 +36,8 @@ else
   for alias in rserve doi db
   do
     if [ -f "${SECRETS_DIR}/$alias/password" ]; then
-      cat "${SECRETS_DIR}/$alias/password" | sed -e "s#^#AS_ADMIN_ALIASPASSWORD=#" > /tmp/.${alias}_asadmin
-      echo "create-password-alias ${alias}_password_alias --passwordfile /tmp/.${alias}_asadmin" >> "${DV_POSTBOOT}"
+      cat "${SECRETS_DIR}/$alias/password" | sed -e "s#^#AS_ADMIN_ALIASPASSWORD=#" > ${SECRETS_DIR}/${alias}/.asadmin
+      echo "create-password-alias ${alias}_password_alias --passwordfile ${SECRETS_DIR}/${alias}/.asadmin" >> "${DV_POSTBOOT}"
     else
       echo "WARNING: Could not find 'password' secret for ${alias} in ${SECRETS_DIR}. Check your Secrets and their mounting!"
     fi

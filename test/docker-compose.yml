@@ -4,6 +4,8 @@ services:
 
   proxy:
     image: ${PROXY_IMAGE_TAG}
+    container_name: test_proxy
+    hostname: proxy
     environment:
       TZ: "Europe/Brussels"
     networks:
@@ -21,6 +23,8 @@ services:
 
   db:
     image: postgres:13-alpine
+    container_name: test_db
+    hostname: db
     user: "${USER_ID}:${GROUP_ID}"
     init: true
     networks:
@@ -29,18 +33,20 @@ services:
       LC_ALL: C.UTF-8
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_PASSWORD_FILE: /run/secrets/db/password
       POSTGRES_PORT: 5432
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/passwd:/etc/passwd:ro
       - ${DB_DATA}:/var/lib/postgresql/data/
-      - ./secrets/db_password:/run/secrets/db_password
+      - ./secrets:/run/secrets:ro
     restart: unless-stopped
 
   index:
     image: ${SOLR_IMAGE_TAG}
+    container_name: test_index
+    hostname: index
     user: "${USER_ID}:${GROUP_ID}"
     init: true
     networks:
@@ -49,16 +55,18 @@ services:
       - "7002:8983"
     environment:
       DATAVERSE_URL: "http://dataverse:8080"
-      UNBLOCK_KEY: "/run/secrets/api_key"
+      UNBLOCK_KEY: "/run/secrets/api/key"
       OOM: "script"
       SOLR_JAVA_MEM: "-Xms512m -Xmx2048m"
     volumes:
       - ${INDEX_DATA}:/var/solr
-      - ./secrets/api_key:/run/secrets/api_key
+      - ./secrets:/run/secrets:ro
     restart: unless-stopped
 
   dataverse:
     image: ${DATAVERSE_IMAGE_TAG}
+    container_name: test_dataverse
+    hostname: dataverse
     networks:
       - apps
       - database
@@ -91,21 +99,17 @@ services:
       - ${DV_DUMPS}:/dumps
       - ${DV_UPLOADS}:/uploads
       - ${DV_LANG_DIR}:/languages
-      - ./secrets/db_password:/run/secrets/db/password
-      - ./secrets/admin_password:/run/secrets/admin/password
-      - ./secrets/user_password:/run/secrets/user/password
-      - ./secrets/api_key:/run/secrets/api/key
-      - ./secrets/api_userskey:/run/secrets/api/userskey
-      - ./secrets/doi_password:/run/secrets/doi/password
-      - ./secrets/rserve_password:/run/secrets/rserve/password
+      - ./secrets:/run/secrets
+
     restart: unless-stopped
     depends_on:
       - db
       - index
-      - mail
 
   mail:
     image: ${MAIL_CATCHER_IMAGE_TAG}
+    container_name: test_mail
+    hostname: mail
     networks:
       - apps
     ports:
@@ -117,6 +121,8 @@ services:
 
   dbadmin:
     image: dpage/pgadmin4
+    container_name: test_dbadmin
+    hostname: dbadmin
     user: "${USER_ID}:${GROUP_ID}"
     networks:
       - database
@@ -141,6 +147,8 @@ services:
 
   apidoc:
     image: swaggerapi/swagger-ui
+    container_name: test_apidoc
+    hostname: apidoc
     networks:
       - apps
     environment:
@@ -152,9 +160,6 @@ services:
       SHOW_COMMON_EXTENSIONS: "true"
       LAYOUT: "BaseLayout"
     restart: unless-stopped
-    depends_on:
-      - proxy
-      - dataverse
 
 networks:
   apps:

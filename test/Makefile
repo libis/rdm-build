@@ -63,9 +63,15 @@ status: ## List all running services
 
 .PHONY: tools
 tools: ## Run tools container
-	docker run --rm -it --network test_app_net -v $(PWD)/$(TOOLS_DATA):/opt/data -v $(PWD)/$(TOOLS_SCRIPTS):/opt/app/scripts \
-		-e DATAVERSE_SERVICE_HOST=dataverse -e DATAVERSE_SERVICE_PORT_HTTP=8080 \
+	docker run --rm -it --network test_app_net -v $(PWD)/$(TOOLS_DATA):/opt/data -v $(PWD)/$(TOOLS_SCRIPTS):/opt/app/scripts -v $(PWD)/secrets:/run/secrets:ro \
+		-e DATAVERSE_SERVICE_HOST=dataverse -e DATAVERSE_SERVICE_PORT_HTTP=8080 --hostname tools --name "tools-$$(date +'%Y%m%d-%H%M%S')" \
 		$(TOOLS_IMAGE_TAG) bash -c ./menu.sh
+
+.PHONY: shell
+shell: ## Run shell in tools container
+	docker run --rm -it --network test_app_net -v $(PWD)/$(TOOLS_DATA):/opt/data -v $(PWD)/$(TOOLS_SCRIPTS):/opt/app/scripts -v $(PWD)/secrets:/run/secrets:ro \
+		-e DATAVERSE_SERVICE_HOST=dataverse -e DATAVERSE_SERVICE_PORT_HTTP=8080 --hostname tools --name "tools-$$(date +'%Y%m%d-%H%M%S')" \
+		$(TOOLS_IMAGE_TAG) bash
 
 # INITIALIZATION
 ######################################################################################################################
@@ -73,7 +79,18 @@ DIRS := $(DV_FILES) $(DV_DUMPS) $(DV_UPLOADS) $(DV_LANG_DIR) $(DB_DATA) $(INDEX_
 				$(PROXY_LOGS)/httpd $(PROXY_LOGS)/shib $(DBADMIN_DATA) $(DBADMIN_LOGS) $(TOOLS_DATA) $(TOOLS_SCRIPTS)
 
 .PHONY: reset ### Reset the installation - deletes all data, including database and index
-reset: down rmdirs rmvols mkdirs up wait_dv bootstrap solr_config restart solr_update reindex ### Stops all services and clears all the data. ALL DATA WILL BE PERMANENTLY LOST!!
+reset: ### Stops all services and clears all the data. ALL DATA WILL BE PERMANENTLY LOST!!
+	@echo "STAGE 1: Create clean installation"
+	@echo "++++++++++++++++++++++++++++++++++"
+	$(MAKE) down rmdirs rmvols mkdirs up wait_dv
+	@echo "++++++++++++++++++++++++++++++++++"
+	@echo "STAGE 2: Bootstrap and configuration"
+	@echo "++++++++++++++++++++++++++++++++++++"
+	$(MAKE) bootstrap solr_config stop-index stop-dataverse up wait_dv
+	@echo "++++++++++++++++++++++++++++++++++"
+	@echo "STAGE 3: Index configuration update"
+	@echo "+++++++++++++++++++++++++++++++++++"
+	$(MAKE) solr_update reindex stop-dataverse up wait_dv
 
 .PHONY: customize
 customize:
@@ -101,14 +118,14 @@ solr_config:
 
 .PHONY: solr_update
 solr_update:
-	docker-compose exec index updateSchema.sh -d http://dataverse:8080 -t /var/solr/data/collection1/conf -u /run/secrets/api_key || true
+	docker-compose exec index updateSchema.sh -d http://dataverse:8080 -t /var/solr/data/collection1/conf -u /run/secrets/api/key || true
 
 # ADMIN TASKS 
 ######################################################################################################################
 
 wait_dv: ### Wait for Dataverse ready
 	@echo -n "Waiting for Dataverse ready "
-	@while [ "$$(curl -sk -m 1 $(DATAVERSE_URL_PREFIX)://localhost:7000/api/info/version | jq '.status' 2>/dev/null)" != "\"OK\"" ]; do \
+	@while [ "$$(curl -sk -m 1 -I $(DATAVERSE_URL_PREFIX)://localhost:7000/robots.txt | head -n 1|cut -d$$' ' -f2)" != "200" ]; do \
 		[[ $$? -gt 0 ]] && echo -n 'x' || echo -n '.'; sleep 1; done && true
 	@echo	' OK.'
 
@@ -123,6 +140,9 @@ logf-proxy:
 
 shell-%: ### start shell in running docker container
 	docker-compose exec $(*) /bin/bash
+
+stop-%: ### stop container
+	docker-compose stop $(*)
 
 .PHONY: reindex
 reindex: ### Force reindexing of all Dataverse collections and datasets

@@ -53,6 +53,11 @@ if [ -s "${SECRETS_DIR}/user/password" ]; then
   USER_PASSWORD=$(cat "${SECRETS_DIR}/user/password")
 fi
 
+# Load Admin API key if present
+if [ -s "${SECRETS_DIR}/api/adminkey" ]; then
+  export adminKey="$(cat "${SECRETS_DIR}/api/adminkey")"
+fi
+
 # Function to correctly parse tsv line
 # From: https://stackoverflow.com/a/4622512
 # This code prevents the collapsing delimiters problem with Bash read
