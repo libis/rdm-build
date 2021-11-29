@@ -33,6 +33,8 @@ RUN python3 -m venv venv \
  && pip install setuptools configparser numpy pandas pyDataverse pysftp requests \
  && echo ". ./venv/bin/activate" >> ${APP_PATH}/.bashrc
 
+COPY rdmPyTools ${APP_PATH}/rdmPyTools
+
 ENTRYPOINT [ "docker-entrypoint.sh" ]
 
 CMD ["irb"]
