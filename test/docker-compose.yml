@@ -40,7 +40,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/passwd:/etc/passwd:ro
       - ${DB_DATA}:/var/lib/postgresql/data/
-      - ./secrets:/run/secrets:ro
+      - ./secrets/db/password:/run/secrets/db/password:ro
     restart: unless-stopped
 
   index:
@@ -168,6 +168,3 @@ networks:
   database:
     name: test_db_net
     attachable: true
-
-volumes:
-  dv_domain:
