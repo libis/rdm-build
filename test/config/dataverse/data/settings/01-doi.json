@@ -2,6 +2,10 @@
   "title": "DOI setup",
   "data": [
     {
+      "name": ":DoiProvider",
+      "value": "FAKE"
+    },
+    {
       "name": ":Authority",
       "value": "10.123456"
     },
