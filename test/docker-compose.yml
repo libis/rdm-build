@@ -86,7 +86,6 @@ services:
       DATAVERSE_SERVICE_PORT_HTTP: 8080
       dataverse_fqdn: "${FQDN}"
       dataverse_siteUrl: "${DATAVERSE_URL_PREFIX}://${FQDN}"
-      doi_provider: "FAKE"
       db_SystemEmail: ${MAIL_SENDER_NAME}
       CUSTOM_INSTALL: "/opt/payara/custominstall"
       API_DEBUG: "false"
@@ -94,11 +93,11 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./config/dataverse:/opt/payara/custominstall
-      - dv_domain:/opt/payara/appserver/glassfish/domains/domain1
       - ${DV_FILES}:/data
       - ${DV_DUMPS}:/dumps
       - ${DV_UPLOADS}:/uploads
       - ${DV_LANG_DIR}:/languages
+      - $(DOCROOT):/opt/payara/appserver/glassfish/domains/domain1/docroot
       - ./secrets:/run/secrets
 
     restart: unless-stopped

@@ -54,9 +54,6 @@ down: ## Stop and destroy all services
 .PHONY: restart
 restart: down up wait_dv ## Stop and restart all services
 
-.PHONY: redeploy
-redeploy: down rmvols up wait_dv customize ## Redeploy the application (a)
-
 .PHONY: status
 status: ## List all running services
 	docker-compose ps
@@ -75,14 +72,14 @@ shell: ## Run shell in tools container
 
 # INITIALIZATION
 ######################################################################################################################
-DIRS := $(DV_FILES) $(DV_DUMPS) $(DV_UPLOADS) $(DV_LANG_DIR) $(DB_DATA) $(INDEX_DATA) \
+DIRS := $(DV_FILES) $(DV_DUMPS) $(DV_UPLOADS) $(DV_LANG_DIR) $(DB_DATA) $(INDEX_DATA) $(DOCROOT) \
 				$(PROXY_LOGS)/httpd $(PROXY_LOGS)/shib $(DBADMIN_DATA) $(DBADMIN_LOGS) $(TOOLS_DATA) $(TOOLS_SCRIPTS)
 
 .PHONY: reset ### Reset the installation - deletes all data, including database and index
 reset: ### Stops all services and clears all the data. ALL DATA WILL BE PERMANENTLY LOST!!
 	@echo "STAGE 1: Create clean installation"
 	@echo "++++++++++++++++++++++++++++++++++"
-	$(MAKE) down rmdirs rmvols mkdirs up wait_dv
+	$(MAKE) down rmdirs mkdirs up wait_dv
 	@echo "++++++++++++++++++++++++++++++++++"
 	@echo "STAGE 2: Bootstrap and configuration"
 	@echo "++++++++++++++++++++++++++++++++++++"
@@ -99,10 +96,6 @@ customize:
 .PHONY: rmdirs
 rmdirs:
 	rm -fR $(DIRS)
-
-.PHONY: rmvols
-rmvols:
-	echo "Removing volume $$(docker volume rm test_dv_domain)"
 
 .PHONY: mkdirs
 mkdirs:
