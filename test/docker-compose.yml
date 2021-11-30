@@ -97,7 +97,7 @@ services:
       - ${DV_DUMPS}:/dumps
       - ${DV_UPLOADS}:/uploads
       - ${DV_LANG_DIR}:/languages
-      - $(DOCROOT):/opt/payara/appserver/glassfish/domains/domain1/docroot
+      - ${DOCROOT}:/opt/payara/appserver/glassfish/domains/domain1/docroot
       - ./secrets:/run/secrets
 
     restart: unless-stopped
