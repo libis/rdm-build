@@ -42,7 +42,7 @@ download_dataverse: ## Download the Dataverse installation package and distribut
 	unzip -q dvinstall.zip
 	echo "Copying installation files ..."
 	echo "  ... war file"
-	cp dvinstall/dataverse.war                          images/dataverse/dvinstall/dataverse.war
+	cp dvinstall/dataverse.war                          images/dataverse/dataverse.war
 	echo "  ... metadata blocks"
 	cp dvinstall/data/metadatablocks/citation.tsv       images/dataverse/dvinstall/data/metadatablocks/01-citation.tsv
 	cp dvinstall/data/metadatablocks/geospatial.tsv     images/dataverse/dvinstall/data/metadatablocks/02-geospatial.tsv
