@@ -23,40 +23,57 @@ import urllib.parse
 # =============================================================================
 
 class dataVerseApi:
-    def __init__(self, inBaseUrl, inApiKey, inApiToken, logName = ''):
+    def __init__(self, inBaseUrl, inApiKey, inApiToken, inSignedCertificate = False, logName = ''):
         self.logger = logging.getLogger(logName)
         self.logger.info('creating an instance of dataVerseUtils')
         self.baseUrl = inBaseUrl
         self.apiKey  = inApiKey
         self.apiToken = inApiToken
+        self.signedCertificate = inSignedCertificate #False--> verify = False; True--> verify = True
+        #Remark: nativeApi will not work with unsigned Certificate
         self.api     = NativeApi(self.baseUrl, self.apiKey)
         self.headers = {'X-Dataverse-key':inApiKey,'Content-Type':'application/json'}
 
     def get_dataverseId(self, inAlias, inUseRequests = True):
         try:
             if (inUseRequests):
-                resp = requests.get(self.baseUrl+"/api/dataverses/"+urllib.parse.quote(inAlias), headers=self.headers)
+                resp = requests.get(self.baseUrl+"/api/dataverses/"+urllib.parse.quote(inAlias), verify = self.signedCertificate, headers=self.headers)
             else:
-                resp = self.api.get_request(self.baseUrl+"/api/dataverses/"+urllib.parse.quote(inAlias))
+                if (self.signedCertificate):
+                    resp = self.api.get_request(self.baseUrl+"/api/dataverses/"+urllib.parse.quote(inAlias))
+                else:
+                    raise(eu.unsignedCertificateError('dataVerseApi - nativeApi will not work with unsigned certificates'))
             dv   = resp.json()
             return(dv['data']['id'])
         except Exception as e:
             self.logger.error("get_dataverseId: %s occurred.  inAlias = %s", e.__class__.__name__, urllib.parse.quote(inAlias))
             raise eu.apiError
     
-    def get_dataverseAlias(self, inId):
+    def get_dataverseAlias(self, inId, inUseRequests = True):
         try:
-            resp = self.api.get_request(self.baseUrl+"/api/dataverses/"+str(inId))
+            if (inUseRequests):
+                resp = requests.get(self.baseUrl+"/api/dataverses/"+str(inId), verify = self.signedCertificate, headers=self.headers)
+            else:
+                if (self.signedCertificate):
+                    resp = self.api.get_request(self.baseUrl+"/api/dataverses/"+str(inId))
+                else:
+                    raise(eu.unsignedCertificateError('dataVerseApi - nativeApi will not work with unsigned certificates'))
             dv = resp.json()
             return(dv['data']['alias'])
         except Exception as e:
             self.logger.error("get_dataverseAlias: %s occurred.  inId = %s", e.__class__.__name__, str(inId))
             raise eu.apiError
     
-    def get_dataverseGroups(self, inId, inGroupsToDefine):
+    def get_dataverseGroups(self, inId, inGroupsToDefine, inUseRequests = True):
         grps = {}
         try: 
-            resp = self.api.get_request(self.baseUrl+"/api/dataverses/"+str(inId)+"/groups")
+            if (inUseRequests):
+                resp = requests.get(self.baseUrl+"/api/dataverses/"+str(inId)+"/groups", verify = self.signedCertificate, headers=self.headers)
+            else:
+                if (self.signedCertificate):
+                    resp = self.api.get_request(self.baseUrl+"/api/dataverses/"+str(inId)+"/groups")
+                else:
+                    raise(eu.unsignedCertificateError('dataVerseApi - nativeApi will not work with unsigned certificates'))
             dvGrps = resp.json()
             for g in dvGrps['data']:
                 for d in inGroupsToDefine:
@@ -76,15 +93,15 @@ class dataVerseApi:
             self.logger.error("get_dataverseGroups: %s occurred.  inId = %s", e.__class__.__name__, str(inId))
             raise eu.apiError
     
-    def get_dataverses(self, inDvDict, inId, inLevel, inAliasPrefix):
-        dvAlias = self.get_dataverseAlias(inId)
+    def get_dataverses(self, inDvDict, inId, inLevel, inAliasPrefix, inUseRequests = True):
+        dvAlias = self.get_dataverseAlias(inId, inUseRequests)
         self.logger.info("level %s: alias %s",str(inLevel),dvAlias)
         aliasPattern = re.compile(inAliasPrefix)
         if (aliasPattern.match(dvAlias)):
             grpOid = re.sub(aliasPattern, '', dvAlias)
             grps = {}
             try:
-                grps = self.get_dataverseGroups(inId)
+                grps = self.get_dataverseGroups(inId, inUseRequests)
             except:
                 raise
             inDvDict[grpOid] = {'level':inLevel,
@@ -93,7 +110,13 @@ class dataVerseApi:
                               'groups':grps}
             self.logger.info("added %s : level %s, alias %s, id %s",grpOid,str(inLevel),dvAlias,str(inId))
         try:
-            resp = self.api.get_request(self.baseUrl+"/api/dataverses/"+str(inId)+"/contents")
+            if (inUseRequests):
+                resp = requests.get(self.baseUrl+"/api/dataverses/"+str(inId)+"/contents", verify = self.signedCertificate, headers=self.headers)
+            else:
+                if (self.signedCertificate):
+                    resp = self.api.get_request(self.baseUrl+"/api/dataverses/"+str(inId)+"/contents")
+                else:
+                    raise(eu.unsignedCertificateError('dataVerseApi - nativeApi will not work with unsigned certificates'))
         except Exception as e:
             self.logger.error("get_dataverses: %s occurred.  inId = %s, inLevel = %s, inAliasPrefix=%s", e.__class__.__name__, str(inId), str(inLevel), inAliasPrefix)
             raise eu.apiError
@@ -102,23 +125,29 @@ class dataVerseApi:
         for c in dvContents['data']:
             if (c['type'] == 'dataverse'):
                 try:
-                    self.get_dataverses(inDvDict, c['id'], inLevel+1, inAliasPrefix)
+                    self.get_dataverses(inDvDict, c['id'], inLevel+1, inAliasPrefix, inUseRequests)
                 except:
                     raise
     
-    def buildDVDict(self, inRootAlias):
+    def buildDVDict(self, inRootAlias, inUseRequests = True):
         dvDict = {}
         try:
-            rootId = self.get_dataverseId(inRootAlias)
-            self.get_dataverses(dvDict, rootId, 0)
+            rootId = self.get_dataverseId(inRootAlias, inUseRequests)
+            self.get_dataverses(dvDict, rootId, 0, inUseRequests)
             return(dvDict)
         except: 
             raise
     
-    def getGroupMembers(self, inGrpOwnerDVId, inGrpAlias):
+    def getGroupMembers(self, inGrpOwnerDVId, inGrpAlias, inUseRequests = True):
         grpMembers = {}
         try:
-            resp = self.api.get_request(self.baseUrl+"/api/dataverses/"+str(inGrpOwnerDVId)+"/groups/"+inGrpAlias)
+            if (inUseRequests):
+                resp = requests.get(self.baseUrl+"/api/dataverses/"+str(inGrpOwnerDVId)+"/groups/"+inGrpAlias, verify = self.signedCertificate, headers=self.headers)
+            else:
+                if (self.signedCertificate):
+                    resp = self.api.get_request(self.baseUrl+"/api/dataverses/"+str(inGrpOwnerDVId)+"/groups/"+inGrpAlias)
+                else:
+                    raise(eu.unsignedCertificateError('dataVerseApi - nativeApi will not work with unsigned certificates'))
             x    = resp.json()
             grpMembers[inGrpAlias] = {
                 'owner': inGrpOwnerDVId,
@@ -128,14 +157,14 @@ class dataVerseApi:
             self.logger.error("getGroupMembers: %s occured.  inGrpOwnerDVId = %s, inGrpAlias=%s", e.__class__.__name__, inGrpOwnerDVId, inGrpAlias)
             raise eu.apiError
     
-    def getGroupsMembers(self, inDVDict):
+    def getGroupsMembers(self, inDVDict, inUseRequests = True):
         grpMembers = {}
         try:
             for k in inDVDict:
                 kGrpMembers = {}
                 resGrpOwner = inDVDict[k]['groups']['res']['owner']
                 resGrpAlias = inDVDict[k]['groups']['res']['groupAliasInOwner']
-                kGrpMembers = self.getGroupMembers(resGrpOwner, resGrpAlias)
+                kGrpMembers = self.getGroupMembers(resGrpOwner, resGrpAlias, inUseRequests = True)
                 grpMembers[resGrpAlias] = kGrpMembers
             return(grpMembers)
         except:
@@ -163,9 +192,12 @@ class dataVerseApi:
     def userExists(self, inUserId, inUseRequests = True):
         try:
             if (inUseRequests):
-                r = requests.get(self.baseUrl+"/api/admin/authenticatedUsers/"+inUserId+"?unblock-key="+self.apiToken, headers=self.headers)
+                r = requests.get(self.baseUrl+"/api/admin/authenticatedUsers/"+inUserId+"?unblock-key="+self.apiToken, verify = self.signedCertificate, headers=self.headers)
             else:
-                r   = self.api.get(self.baseUrl+"/api/admin/authenticatedUsers/"+inUserId+"?unblock-key="+self.apiToken)
+                if (self.signedCertificate):
+                    r = self.api.get_request(self.baseUrl+"/api/admin/authenticatedUsers/"+inUserId+"?unblock-key="+self.apiToken)
+                else:
+                    raise(eu.unsignedCertificateError('dataVerseApi - nativeApi will not work with unsigned certificates'))
             usr = r.json()
             if (usr['status']!='ERROR'):
                 return(True)
@@ -178,9 +210,12 @@ class dataVerseApi:
     def delUser(self, inUsrId, inUseRequests = True):
         try:
             if (inUseRequests):
-                r = requests.delete(self.baseUrl+"/api/admin/authenticatedUsers/"+inUsrId+"?unblock-key="+self.apiToken, headers=self.headers)
+                r = requests.delete(self.baseUrl+"/api/admin/authenticatedUsers/"+inUsrId+"?unblock-key="+self.apiToken, verify = self.signedCertificate, headers=self.headers)
             else:
-                r   = self.api.delete(self.baseUrl+"/api/admin/authenticatedUsers/"+inUsrId+"?unblock-key="+self.apiToken)
+                if (self.signedCertificate):
+                    r = self.api.delete_request(self.baseUrl+"/api/admin/authenticatedUsers/"+inUsrId+"?unblock-key="+self.apiToken)
+                else:
+                    raise(eu.unsignedCertificateError('dataVerseApi - nativeApi will not work with unsigned certificates'))
             return(r)
         except Exception as e:
             self.logger.error("delUser: %s occured. inUserId = %s", e.__class__.__name__, inUsrId)
@@ -189,9 +224,12 @@ class dataVerseApi:
     def updUser(self, inUserData, inUseRequests = True):
         try:
             if (inUseRequests):
-                resp = requests.put(self.baseUrl+'/api/admin/authenticatedUsers'+"?unblock-key="+self.apiToken, headers=self.headers, data=inUserData)            
+                resp = requests.put(self.baseUrl+'/api/admin/authenticatedUsers'+"?unblock-key="+self.apiToken, verify = self.signedCertificate, headers=self.headers, data=inUserData)            
             else:
-                resp = self.api.put_request(self.baseUrl+"/api/admin/authenticatedUsers"+"?unblock-key="+self.apiToken,inUserData)
+                if (self.signedCertificate):
+                    resp = self.api.put_request(self.baseUrl+"/api/admin/authenticatedUsers"+"?unblock-key="+self.apiToken,inUserData)
+                else:
+                    raise(eu.unsignedCertificateError('dataVerseApi - nativeApi will not work with unsigned certificates'))
             updateUSR_resp = resp.json()
             return(updateUSR_resp)
         except Exception as e:
@@ -201,9 +239,12 @@ class dataVerseApi:
     def addUser(self, inUserData, inUseRequests = True):
         try:
             if (inUseRequests):
-                resp = requests.post(self.baseUrl+'/api/admin/authenticatedUsers'+"?unblock-key="+self.apiToken, headers=self.headers, data=inUserData)
+                resp = requests.post(self.baseUrl+'/api/admin/authenticatedUsers'+"?unblock-key="+self.apiToken, verify = self.signedCertificate, headers=self.headers, data=inUserData)
             else:
-                resp = self.api.post_request(self.baseUrl+"/api/admin/authenticatedUsers"+"?unblock-key="+self.apiToken,inUserData)
+                if (self.signedCertificate):
+                    resp = self.api.post_request(self.baseUrl+"/api/admin/authenticatedUsers"+"?unblock-key="+self.apiToken,inUserData)
+                else:
+                    raise(eu.unsignedCertificateError('dataVerseApi - nativeApi will not work with unsigned certificates'))
             createUSR_resp = resp.content
             return(createUSR_resp)
         except Exception as e:
@@ -213,9 +254,12 @@ class dataVerseApi:
     def delUsrFromGroup(self, inGrpDV, inGrpAlias, inUserAtId, inUseRequests = True):
         try:
             if (inUseRequests):
-                resp = requests.delete(self.baseUrl+"/api/dataverses/"+str(inGrpDV)+"/groups/"+inGrpAlias+"/roleAssignees/"+inUserAtId, headers=self.headers)
+                resp = requests.delete(self.baseUrl+"/api/dataverses/"+str(inGrpDV)+"/groups/"+inGrpAlias+"/roleAssignees/"+inUserAtId, verify = self.signedCertificate, headers=self.headers)
             else:
-                resp = self.api.delete_request(self.baseUrl+"/api/dataverses/"+str(inGrpDV)+"/groups/"+inGrpAlias+"/roleAssignees/"+inUserAtId)
+                if (self.signedCertificate):
+                    resp = self.api.delete_request(self.baseUrl+"/api/dataverses/"+str(inGrpDV)+"/groups/"+inGrpAlias+"/roleAssignees/"+inUserAtId)
+                else:
+                    raise(eu.unsignedCertificateError('dataVerseApi - nativeApi will not work with unsigned certificates'))
             DELGrpMemberResp = resp.json()
             return(DELGrpMemberResp)
         except Exception as e:
@@ -228,9 +272,12 @@ class dataVerseApi:
         #PUT http://$server/api/dataverses/$dv/groups/$groupAlias/roleAssignees/$roleAssigneeIdentifier
         try:
             if (inUseRequests):
-                resp = requests.put(self.baseUrl+"/api/dataverses/"+str(inGrpDV)+"/groups/"+inGrpAlias+"/roleAssignees/"+inUserAtId, headers=self.headers)
+                resp = requests.put(self.baseUrl+"/api/dataverses/"+str(inGrpDV)+"/groups/"+inGrpAlias+"/roleAssignees/"+inUserAtId, verify = self.signedCertificate, headers=self.headers)
             else:
-                resp = self.api.put_request(self.baseUrl+"/api/dataverses/"+str(inGrpDV)+"/groups/"+inGrpAlias+"/roleAssignees/"+inUserAtId)
+                if (self.signedCertificate):
+                    resp = self.api.put_request(self.baseUrl+"/api/dataverses/"+str(inGrpDV)+"/groups/"+inGrpAlias+"/roleAssignees/"+inUserAtId)
+                else:
+                    raise(eu.unsignedCertificateError('dataVerseApi - nativeApi will not work with unsigned certificates'))
             putGRP_resp = resp.json()
             return(putGRP_resp)
         except Exception as e:

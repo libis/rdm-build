@@ -88,6 +88,9 @@ def diffFile(currFile, prevFileBaseName, creUpdFile, delFile, inCurrDate, fileSe
                     #deltaDf = pd.concat([prevDf, currDf]).drop_duplicates(keep=False)
                 else:
                     logH.debug('No previous Sap Users File found')
+                    # creUpdDir = gu.getDirFromFileName(creUpdFile)
+                    # logH.debug('getSapUsersFile: move full file %s to creUpd Directory %s', currFile, creUpdDir)
+                    # gu.moveFile(currFile, creUpdDir, logName)
             else:
                 logH.debug('Current File does not contain enough lines (%d) - sanity check failed', nbrOfLines)
         else:

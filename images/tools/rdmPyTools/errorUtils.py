@@ -33,6 +33,15 @@ class doiParseError(myError):
 class handleParseError(myError):
     pass
 
+class readFile2StringError(myError):
+    pass
+
+class unsignedCertificateError(myError):
+    pass
+
+class configParamError(myError):
+    pass
+
 #class ValueTooSmallError(Error):
  #   """Raised when the input value is too small"""
   #  pass

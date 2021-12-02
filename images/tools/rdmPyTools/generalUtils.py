@@ -10,11 +10,44 @@ import sys
 import configparser
 from ftplib import FTP, FTP_TLS
 from datetime import date, timedelta
+import glob
+import time
 import pysftp
 import logging
 import errorUtils as eu
 from pathlib import Path   
 import shutil
+
+def isDir(inDir):
+    return(os.path.isdir(inDir))
+
+def isFile(inFile):
+    return(os.path.isfile(inFile))
+
+def getDirFromFileName(inFileName):
+    dirname = os.path.dirname(inFileName)
+    return(dirname)
+
+def readFile2String(inFile):
+    try:
+        myFile = open(inFile,"r")
+        data   = ""
+        lines  = myFile.readlines()
+        for line in lines:
+            data = data + line.strip();
+        return(data)
+    except Exception as e:
+        raise eu.readFile2StringError
+
+def dirByDate(inDir):        
+    try:
+        # Get list of all files only in the given directory
+        list_of_files = filter( os.path.isfile,glob.glob(inDir + '*') )
+        # Sort list of files based on last modification time in ascending order
+        list_of_files = sorted( list_of_files, key = os.path.getmtime)
+        return(list_of_files)
+    except:
+        return(None)
 
 def moveFile(file2Move, toDir, logName):
     logH        = logging.getLogger(logName)

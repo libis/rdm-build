@@ -9,6 +9,7 @@ import logging
 import os.path
 
 import readSapUsers as rsu
+import processSapUsersFiles as psuf
 import getSapUsersFile as gsu
 import errorUtils as eu
 import dataVerse2Elements as dv2el
@@ -127,7 +128,17 @@ def main(argv):
             logger.error('Api Error')
         except Exception as e:
             logger.error(e.__class__.__name__+" occurred.")
+    elif (task == 'PROCESSSAPUSERSFILES'):
+        if (not (check_file(configfile))):
+            logger.error('ConfigFile (%s) was not correctly specified for task %s', configfile, task)
+            sys.exit()
             
+        logger.debug('Starting task %s',task)
+        #print('Starting task ',task)
+        try:
+            psuf.processSapUsersFiles(configfile, task)
+        except Exception as e:
+            logger.error(e.__class__.__name__+" occurred.")
     elif (task == 'GETSAPUSERSFILE'):
         if (not (check_file(configfile))):
             logger.error('ConfigFile (%s) was not correctly specified for task %s', configfile, task)

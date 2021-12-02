@@ -9,7 +9,6 @@ from pyDataverse.api import NativeApi, Api
 import json
 import re 
 import requests
-import dataVerseUtils as dvu
 from requests.auth import HTTPBasicAuth
 import xml.etree.ElementTree as ET
 import errorUtils as eu

@@ -40,12 +40,25 @@ def readSapFile(inInputFile, inConfigFile, logName = ''):
         #get loghandler
         logH        = logging.getLogger(logName)
         #read options from configurationfile
-        logH.debug('Read Configuration File %s', inConfigFile)
+        logH.debug('readSapUsers: Read Configuration File %s', inConfigFile)
         opts        = gu.readConfigFile(inConfigFile)
         #dataVerse settings
         baseUrl     = opts.get('DataVerse','baseUrl')
-        apiKey      = opts.get('DataVerse','apiKey')
+        apiKey      = opts.get('DataVerse','apiKey', fallback = None)
+        apiKeyFile  = opts.get('DataVerse','apiKeyFile')
+        if (apiKey is None):
+            try:
+                apiKey = gu.readFile2String(apiKeyFile)
+                logH.info("readSapUsers: apiKeyFile=%s revealed apiKey", apiKeyFile)
+            except Exception as e:
+                logH.error("readSapUsers: %s occured. apiKeyFile=%s",e.__class__.__name__,apiKeyFile)
+                raise 
         apiToken    = opts.get('DataVerse','apiToken')
+        signedCertificate = opts.getboolean('DataVerse', 'signedCertificate', fallback = False)
+        if (signedCertificate):
+            logH.info('readSapUsers: will be expecting signed certificate for DataVerse API')
+        else:   
+            logH.info('readSapUsers: allowing UNsigned certificate for DataVerse API')
         rootDVAlias = opts.get('DataVerse','rootDV')
         singleDVSetup = opts.getboolean('DataVerse','singleDVSetup', fallback = True)
         singleDV    = opts.get('DataVerse','singleDV')
@@ -77,7 +90,7 @@ def readSapFile(inInputFile, inConfigFile, logName = ''):
         testNbr   = opts.getint('runSettings','testNbr', fallback = 99999)
         
         #dataVerseUtils object
-        dvu = dataVerseUtils.dataVerseApi(baseUrl,apiKey,apiToken,logName)
+        dvu = dataVerseUtils.dataVerseApi(baseUrl,apiKey,apiToken,signedCertificate,logName)
         
         #Get the defined Organisational structure from the existing dataverses
         if (delete):

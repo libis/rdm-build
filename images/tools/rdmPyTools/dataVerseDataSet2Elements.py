@@ -43,6 +43,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
     useContributorType = opts.getboolean('flags', 'useContributorType', fallback = False)
     getUserNameViaApi = opts.getboolean('flags', 'getUserNameViaApi', fallback = True)
     useLabels       = opts.getboolean('flags', 'useLabels', fallback = False)
+    exportVODL      = opts.getboolean('flags', 'exportVODL', fallback = False)
     #
     languagesSep    = opts.get('flags','languagesSep', fallback = '|')
     altTitlesSep    = opts.get('flags','altTitlesSep', fallback = '|')
@@ -420,10 +421,13 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
                     fldkw.text = kw['keywordValue']
         #VODL -> subjects
         if ('subject' in data['metadata']):
-            logH.info('dataVerseDataSet2Elements check subject')        
-            for sb in data['metadata']['subject']:
-                    fldkw = ET.SubElement(fldkws, 'keyword', scheme = defVODLScheme)
-                    fldkw.text = sb
+            if (exportVODL):
+                logH.info('dataVerseDataSet2Elements check subject')        
+                for sb in data['metadata']['subject']:
+                        fldkw = ET.SubElement(fldkws, 'keyword', scheme = defVODLScheme)
+                        fldkw.text = sb
+            else:
+                logH.info('dataVerseDataSet2Elements - VODL subject is not exported')                        
         #virtual collection
         #UseLabels = False -> include them in the keywords field instead of in a separate "labels" field
         if ('virtualCollection' in data['metadata']):
