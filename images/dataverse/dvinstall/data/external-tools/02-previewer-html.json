@@ -1,10 +1,12 @@
 {
   "displayName": "View Html",
   "description": "View the html file.",
+  "toolName": "htmlPreviewer",
   "scope": "file",
-  "type": "explore",
-  "hasPreviewMode": "true",
-  "toolUrl": "https://globaldataversecommunityconsortium.github.io/dataverse-previewers/previewers/HtmlPreview.html",
+  "types": [
+    "preview"
+  ],
+  "toolUrl": "https://gdcc.github.io/dataverse-previewers/previewers/v1.2/HtmlPreview.html",
   "toolParameters": {
     "queryParameters": [
       {

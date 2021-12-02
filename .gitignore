@@ -4,3 +4,13 @@ dvinstall.zip
 /dvinstall/
 /rdmPyTools/
 /images/dataverse/dataverse.war
+images/dataverse/dvinstall/jhove.conf
+images/dataverse/dvinstall/jhoveConfig.xsd
+images/dataverse/dvinstall/data/dv-root.json
+images/dataverse/dvinstall/data/user-admin.json
+images/dataverse/dvinstall/data/authentication-providers/*.json
+images/dataverse/dvinstall/data/metadatablocks/*.tsv
+images/dataverse/dvinstall/data/roles/*.json
+images/solr/conf/schema.xml
+images/solr/conf/solrconfig.xml
+images/solr/scripts/update-fields.sh

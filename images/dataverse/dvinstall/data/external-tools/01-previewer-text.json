@@ -1,10 +1,12 @@
 {
   "displayName": "Read Text",
   "description": "Read the text file.",
+  "toolName": "textPreviewer",
   "scope": "file",
-  "type": "explore",
-  "hasPreviewMode": "true",
-  "toolUrl": "https://globaldataversecommunityconsortium.github.io/dataverse-previewers/previewers/TextPreview.html",
+  "types": [
+    "preview"
+  ],
+  "toolUrl": "https://gdcc.github.io/dataverse-previewers/previewers/v1.2/TextPreview.html",
   "toolParameters": {
     "queryParameters": [
       {
