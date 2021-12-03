@@ -59,7 +59,7 @@ if [ ! -z "${UNBLOCK_KEY}" ]; then
 fi
 
 # Call the new update-fields.sh script to update the schema
-curl -f -s "${DATAVERSE_URL}/api/admin/index/solr/schema${UNBLOCK_KEY}" | ${SCRIPT_DIR}/update-fields.sh ${TARGET}/schema.xml
+curl -f -s "${DATAVERSE_URL}/api/admin/index/solr/schema${UNBLOCK_KEY}" | update-fields.sh ${TARGET}/schema.xml -
 
 # Reload the Solr collection
 echo "Triggering Solr RELOAD at ${SOLR_URL}/solr/admin/cores?action=RELOAD&core=collection1"
