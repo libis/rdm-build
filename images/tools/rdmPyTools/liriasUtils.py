@@ -132,6 +132,26 @@ class liriasApi:
             self.logger.error('deleteRelationShip: %s occured, inRelId = %s',e.__class__.__name__,inRelId)
             raise eu.liriasApiError()
             
+    def getElementsDataSources(self):
+        #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/publication/sources
+        try:
+            sourcesDict = {}
+            resp = requests.get(self.baseUrl+'/publication/sources', auth = self.auth)
+            feed = ET.fromstring(resp.content)
+            #print(resp.content)
+            entries = feed.findall('./atom:entry', self.ns)
+            for entry in entries:
+                srcId = entry.find('./api:data-source', self.ns).attrib['id']
+                srcCat = entry.find('./api:data-source', self.ns).attrib['category']
+                srcName = entry.find('./api:data-source', self.ns).attrib['name']
+                self.logger.info('getElementsDataSources: Add source %s with id %s, category %s',srcName,str(srcId),srcCat)
+                sourcesDict[srcId] = srcName
+            return(sourcesDict)
+        except Exception:
+            self.logger.waring('getElementsDataSources: could not build Elements sources dictionary dynamically')
+            return(None)
+        
+            
     def getPublicationElementsId(self, inId, searchSourcesDict):
         #search for the inId in all elements sources defined in the searchSourcesDict dictionary
         Found       = False
@@ -244,4 +264,9 @@ def liriasLegitimateOptout(inLO):
         return(inLO.lower())
     else:
         raise eu.LiriasError('Wrong Legitimate Optout Entry '+inLO.lower())
+
+def cleanLiriasID(inLiriasId):
+    #STRIP OFF LIRIAS AT THE BEGINNING
+    newId = re.sub('^lirias', '', inLiriasId, flags=re.IGNORECASE)
+    return(newId)
             

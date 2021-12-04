@@ -65,19 +65,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
     readApiPw   = opts.get('elementsApi','readApiPw', raw=True)
     writeApiUser= opts.get('elementsApi','writeApiUser')
     writeApiPw  = opts.get('elementsApi','writeApiPw', raw=True)
-    elementsSources = opts.get('elementsApi','elementsSources')
-    if (elementsSources != ''):
-        try:
-            elementsSourcesDict = json.loads(str(elementsSources))
-        except Exception as e:
-            logH.info('dataVerseDataSet2Elements config error trying to read elementsSources dict information '+e.__class__.__name__)
-            elementsSourcesDict = {"0":dataSource}
-    else:
-        elementsSourcesDict = {"0":dataSource} #by default c-inst-1 will be considered
-
-    # for dva in elementsSourcesDict.values():
-    #     logH.info('dataVerseDataSet2Elements sources Dict contents: '+dva)
-    
+    elementsSources = opts.get('elementsApi','elementsSources', fallback = None)
     logH.info('dataVerseDataSet2Elements config settings loaded')
     
     try:    
@@ -87,8 +75,34 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
         logH.error('Error dataVerseDataSet2Elements: %s',e.__class__.__name__)
         logH.error('Error dataVerseDataSet2Elements: could not create a Lirias Api client')
         raise
+
+    elementsSourcesDict = readLiriasApi.getElementsDataSources()
+    if (elementsSourcesDict is None):
+        #Elements data sources could not dynamically be established
+        logH.info('dataVerseDataSet2Elements try to read elementsSources dict information from ini file')
+        defaultElementsSourcesDict = {"0":dataSource}
+        if (elementsSources is None):
+            elementsSourcesDict = defaultElementsSourcesDict #by default c-inst-1 will be considered
+        else:   
+            if (elementsSources != ''):
+                try:
+                    elementsSourcesDict = json.loads(str(elementsSources))
+                except Exception as e:
+                    logH.info('dataVerseDataSet2Elements config error trying to read elementsSources dict information '+e.__class__.__name__)
+                    elementsSourcesDict = defaultElementsSourcesDict
+            else:
+                elementsSourcesDict = defaultElementsSourcesDict #by default c-inst-1 will be considered
+    # for dva in elementsSourcesDict.values():
+    #     logH.info('dataVerseDataSet2Elements sources Dict contents: '+dva)
             
-    orcidList = ou.readOrcidFile(orcidDir+orcidFile)
+
+    mostRecentOrcidFile = gu.dirMostRecentFile(orcidDir+orcidFile)
+    if (mostRecentOrcidFile is not None):
+        logH.info('dataVerseDataSet2Elements using ORCID file: %s', mostRecentOrcidFile)
+        orcidList = ou.readOrcidFile(mostRecentOrcidFile)
+    else:
+        logH.warning('dataVerseDataSet2Elements suitable ORCID file NOT found base on %s', orcidDir+orcidFile)
+        orcidList = {}
     
     inFile = inDataSetFile
     inFileName = Path(inFile).name
@@ -244,66 +258,88 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
     if ('publication' in data['metadata']):
         logH.info('related publications')
         for pub in data['metadata']['publication']:
-            if (pub['publicationIDType'] == 'doi'):
-                logH.info('related publication : DOI to be checked '+str(pub['publicationIDNumber']))
-                relationErrorFound = False
-                try:
-                    currDOI      = gu.parseDOI(pub['publicationIDNumber'])
-                    logH.info('related publication : DOI to be checked parsed '+currDOI)
-                    currLiriasID = readLiriasApi.getPublicationElementsId(currDOI, elementsSourcesDict)
-                    logH.info('related publication: '+currLiriasID)
-                    relationObject = {
-                        'to-object': currLiriasID,
-                        'type-name' : 'publication-publication-supplement'}
-                    relations.append(relationObject)
-                except eu.doiParseError as ae:
-                    logH.info('related publication doi sanity check failed '+pub['publicationIDNumber'])
-                    relationErrorFound = True
-                except eu.liriasApiError as de:
-                    logH.info('related publication : could not find ElementsID for '+currDOI)
-                    relationErrorFound = True
-                except Exception as e:
-                    logH.info('related publication : undefined error '+e.__class__.__name__+' for '+pub['publicationIDNumber'])
-                    relationErrorFound = True
-                if (relationErrorFound and 'liriasSourceID' in pub):
-                    logH.info('related publication: '+str(pub['liriasSourceID']))
-                    relationObject = {
-                        'to-object': str(pub['liriasSourceID']),
-                        'type-name' : 'publication-publication-supplement'}
-                    relations.append(relationObject)
-            elif (pub['publicationIDType'] == 'handle'):
-                logH.info('related publication : Handle to be checked '+str(pub['publicationIDNumber']))
-                relationErrorFound = False
-                try:
-                    currHandle   = gu.parseHandle(pub['publicationIDNumber'])
-                    currLiriasID = readLiriasApi.getPublicationElementsId(currHandle, elementsSourcesDict)
-                    logH.info('related publication: '+currLiriasID)
-                    relationObject = {
-                        'to-object': currLiriasID,
-                        'type-name' : 'publication-publication-supplement'}
-                    relations.append(relationObject)
-                except eu.handleParseError as ae:
-                    logH.info('related publication Handle sanity check failed '+pub['publicationIDNumber'])
-                    relationErrorFound = True
-                except eu.liriasApiError as de:
-                    logH.info('related publication : could not find ElementsID for '+currHandle)
-                    relationErrorFound = True
-                except Exception as e:
-                    logH.info('related publication : undefined error '+e.__class__.__name__+' for '+pub['publicationIDNumber'])
-                    relationErrorFound = True
-                if (relationErrorFound and 'liriasSourceID' in pub):
-                    logH.info('related publication: '+str(pub['liriasSourceID']))
-                    relationObject = {
-                        'to-object': str(pub['liriasSourceID']),
-                        'type-name' : 'publication-publication-supplement'}
-                    relations.append(relationObject)
-            else:
+            if ('publicationIDType' in pub):
+                if (pub['publicationIDType'] == 'doi'):
+                    logH.info('related publication : DOI to be checked '+str(pub['publicationIDNumber']))
+                    relationErrorFound = False
+                    try:
+                        currDOI      = gu.parseDOI(pub['publicationIDNumber'])
+                        logH.info('related publication : DOI to be checked parsed '+currDOI)
+                        currLiriasID = readLiriasApi.getPublicationElementsId(currDOI, elementsSourcesDict)
+                        logH.info('related publication: '+currLiriasID)
+                        relationObject = {
+                            'to-object': currLiriasID,
+                            'type-name' : 'publication-publication-supplement'}
+                        relations.append(relationObject)
+                    except eu.doiParseError as ae:
+                        logH.info('related publication doi sanity check failed '+pub['publicationIDNumber'])
+                        relationErrorFound = True
+                    except eu.liriasApiError as de:
+                        logH.info('related publication : could not find ElementsID for '+currDOI)
+                        relationErrorFound = True
+                    except Exception as e:
+                        logH.info('related publication : undefined error '+e.__class__.__name__+' for '+pub['publicationIDNumber'])
+                        relationErrorFound = True
+                    if (relationErrorFound and 'liriasSourceID' in pub):
+                        logH.info('related publication: '+str(pub['liriasSourceID']))
+                        liriasId = lu.cleanLiriasID(str(pub['liriasSourceID']))    
+                        if (liriasId != str(pub['liriasSourceID'])):
+                            logH.info('related publication: LiriasId cleaned '+str(liriasId))
+                        relationObject = {
+                            'to-object': str(liriasId),
+                            'type-name' : 'publication-publication-supplement'}
+                        relations.append(relationObject)
+                elif (pub['publicationIDType'] == 'handle'):
+                    logH.info('related publication : Handle to be checked '+str(pub['publicationIDNumber']))
+                    relationErrorFound = False
+                    try:
+                        currHandle   = gu.parseHandle(pub['publicationIDNumber'])
+                        currLiriasID = readLiriasApi.getPublicationElementsId(currHandle, elementsSourcesDict)
+                        logH.info('related publication: '+currLiriasID)
+                        relationObject = {
+                            'to-object': currLiriasID,
+                            'type-name' : 'publication-publication-supplement'}
+                        relations.append(relationObject)
+                    except eu.handleParseError as ae:
+                        logH.info('related publication Handle sanity check failed '+pub['publicationIDNumber'])
+                        relationErrorFound = True
+                    except eu.liriasApiError as de:
+                        logH.info('related publication : could not find ElementsID for '+currHandle)
+                        relationErrorFound = True
+                    except Exception as e:
+                        logH.info('related publication : undefined error '+e.__class__.__name__+' for '+pub['publicationIDNumber'])
+                        relationErrorFound = True
+                    if (relationErrorFound and 'liriasSourceID' in pub):
+                        logH.info('related publication: '+str(pub['liriasSourceID']))
+                        liriasId = lu.cleanLiriasID(str(pub['liriasSourceID']))    
+                        if (liriasId != str(pub['liriasSourceID'])):
+                            logH.info('related publication: LiriasId cleaned '+str(liriasId))
+                        relationObject = {
+                            'to-object': str(liriasId),
+                            'type-name' : 'publication-publication-supplement'}
+                        relations.append(relationObject)
+                else:
+                    if ('liriasSourceID' in pub):
+                        logH.info('related publication: '+str(pub['liriasSourceID']))
+                        liriasId = lu.cleanLiriasID(str(pub['liriasSourceID']))    
+                        if (liriasId != str(pub['liriasSourceID'])):
+                            logH.info('related publication: LiriasId cleaned '+str(liriasId))
+                        relationObject = {
+                            'to-object': str(liriasId),
+                            'type-name' : 'publication-publication-supplement'}
+                        relations.append(relationObject)
+            else: #publicationIDType not in json - try to see if the liriasID is present
+                logH.info('related publication: could not find publilcationIDType... looking for liriasSourceID')
                 if ('liriasSourceID' in pub):
                     logH.info('related publication: '+str(pub['liriasSourceID']))
+                    liriasId = lu.cleanLiriasID(str(pub['liriasSourceID']))    
+                    if (liriasId != str(pub['liriasSourceID'])):
+                        logH.info('related publication: LiriasId cleaned '+str(liriasId))
                     relationObject = {
-                        'to-object': str(pub['liriasSourceID']),
+                        'to-object': str(liriasId),
                         'type-name' : 'publication-publication-supplement'}
                     relations.append(relationObject)
+
 
     #abstract
     cntAbstracts = 0
@@ -354,7 +390,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
                 csti = ET.SubElement(cstis, 'item')
                 csti.text = c['contributorType']
     logH.info('dataVerseDataSet2Elements check grants')    
-    #fund/grand
+    #fund/grant
     if ('grantNumber' in data['metadata']):
         fas = ET.SubElement(native, 'field', name='funding-acknowledgements')
         fas.set('type','funding-acknowledgements')
@@ -503,12 +539,15 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
     logH.info('dataVerseDataSet2Elements check license')    
     licenseAdded = False
     if ('license' in data):
-        if (str(data['license']['uri']) != '' and not(data['license']['uri'] is None)):
-            licenseAdded = True
-            logH.info('dataVerseDataSet2Elements license uri is not None : '+str(data['license']['uri']))
-            lic = ET.SubElement(native, 'field', name='c-license-data')
-            licT = ET.SubElement(lic, 'text')
-            licT.text = data['license']['uri']
+        if ('uri' in data['license']):
+            if (str(data['license']['uri']) != '' and not(data['license']['uri'] is None)):
+                licenseAdded = True
+                logH.info('dataVerseDataSet2Elements license uri is not None : '+str(data['license']['uri']))
+                lic = ET.SubElement(native, 'field', name='c-license-data')
+                licT = ET.SubElement(lic, 'text')
+                licT.text = data['license']['uri']
+        else:
+            logH.info('dataVerseDataSet2Elements license uri is not present - will use termsOfUse')            
 
     if (not licenseAdded):
         logH.info('dataVerseDataSet2Elements check termsOfUse for license')    

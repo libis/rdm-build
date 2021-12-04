@@ -6,6 +6,13 @@ Created on Wed Apr 28 14:03:16 2021
 """
 import generalUtils as gu
 import os
+import re
+
+its = ["LIRIAS987654321","123Lirias456","lirias1234545","Lirias4566","1234Lirias"]
+for it in its:
+    itnew = re.sub('^lirias','',it,flags=re.IGNORECASE)
+    print(it+'->'+itnew)
+
 
 dt = gu.get_yyyymmddOffset(-100)
 print(dt)

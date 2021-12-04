@@ -36,8 +36,18 @@ def readFile2String(inFile):
         for line in lines:
             data = data + line.strip();
         return(data)
-    except Exception as e:
+    except Exception:
         raise eu.readFile2StringError
+        
+def dirMostRecentFile(inGlob):
+    try:
+        filesFound = dirByDate(inGlob)
+        if (filesFound is not None):
+            return(filesFound[-1])
+        else:
+            return(None)
+    except:
+        return(None)
 
 def dirByDate(inDir):        
     try:

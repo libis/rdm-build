@@ -34,7 +34,7 @@ else:
 
 
 
-optie = 10
+optie = 11
 
 if optie == 1:
     #get datafields for dataset template
@@ -147,7 +147,7 @@ if optie == 7:
             print("tobe deleted")
             respR = requests.get(apiUrl+'/relationships/'+str(entId), auth = HTTPBasicAuth(apiUser,apiPw))    
             #print(respR.content)
-
+            
 if optie == 8:
     elementsSourcesDict = {
         2147483646 : "c-inst-1",
@@ -219,6 +219,24 @@ if optie == 9:
 if optie == 10:
     elementsSources = '[{"2147483646":"c-inst-1","1":"manual","3":"wos","2":"pubmed","18":"epmc","13":"crossref","17":"figshare","6":"dblp","7":"scopus","5":"arxiv","24":"dspace","16":"google-books","4":"isi-proceedings","15":"scival","11":"wos-lite","8":"cinii-english","2147483647":"c-inst-2","12":"repec","9":"cinii-japanese","21":"figshare-for-institutions","22":"ssrn","23":"digital-commons","25":"mla","26":"dimensions-for-universities","27":"r3","28":"eprints","10":"dimensions","29":"hyrax","19":"orcid","20":"elements"}]'
     dt = json.loads(elementsSources)
+
+
+if optie == 11:
+    #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/publication/sources
+    sourcesDict = {}
+
+    resp = requests.get(apiUrl+'/publication/sources', auth = HTTPBasicAuth(apiUser,apiPw))    
+    ns = {'atom': "http://www.w3.org/2005/Atom",
+          'api': "http://www.symplectic.co.uk/publications/api"}
+    root = ET.fromstring(resp.content)
+    #print(resp.content)
+    entries = root.findall('./atom:entry', ns)
+    for entry in entries:
+        srcId = entry.find('./api:data-source', ns).attrib['id']
+        srcCat = entry.find('./api:data-source', ns).attrib['category']
+        srcName = entry.find('./api:data-source', ns).attrib['name']
+        print(srcName+','+srcId+','+srcCat)
+        sourcesDict[srcId] = srcName
 
 sys.exit()
 
