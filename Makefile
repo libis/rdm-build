@@ -108,8 +108,7 @@ download-tools:
 update-tools: download-tools
 	echo "Updating Gem bundle ..."
 	cd images/tools; bundle update; cd -
-	mkdir -p tools/images/rdmPyTools
-	for f in rdmPyTools/bin/* rdmPyTools/R/*; do name=$$(basename $$f); [[ -f $$f ]] &&cp $$f images/tools/rdmPyTools/$$name; done
+	$(CP) --delete --dirs rdmPyTools/bin/*.py images/tools/rdmPyTools/
 
 build-tools: update-tools ## Create the docker image for the Tools service
 	echo "Building Tools image '$(TOOLS_IMAGE_TAG)'..."
