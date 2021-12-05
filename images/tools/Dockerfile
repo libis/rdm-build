@@ -35,6 +35,4 @@ RUN python3 -m venv venv \
 
 COPY rdmPyTools ${APP_PATH}/rdmPyTools
 
-ENTRYPOINT [ "/bin/bash" ]
-
 CMD ["irb"]
