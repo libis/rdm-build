@@ -5,13 +5,10 @@ Created on Thu May  6 13:15:07 2021
 @author: PieterDV
 """
 import os
-import sys
 import pandas as pd
-import numpy as np
 import re
 
 import logging
-import math
 
 import generalUtils as gu
 import errorUtils as eu
@@ -146,12 +143,19 @@ def getSapUsersFile(inConfigFile, logName = ''):
         if (generateOrcidFile):
             logH.debug('generating an Orcid file %s', orcidFile)
             genOrcidFile(currFile, orcidFile, fileSep, logName)
+            logH.warning('Orcid File generated: %s', orcidFile)
     
         #get additions/updates and removed users in 2 separate files
         try:
-            diffFile(currFile, currFileBaseName, creUpdFile, delFile, currDate, fileSep, logName) 
+            diffFile(currFile, currFileBaseName, creUpdFile, delFile, currDate, fileSep, logName)
+            if (gu.isFile(currFile)):
+                logH.warning('Downloaded File: %s', currFile)
+            if (gu.isFile(creUpdFile)):
+                logH.warning('File with creates/updates: %s', creUpdFile)
+            if (gu.isFile(delFile)):
+                logH.warning('File with deletes: %s', delFile)
         except:
-            logH.debug('problem with creating files with deletes and/or updates')
+            logH.error('Problem with creating files with deletes and/or updates')
             raise
         
     except eu.fileTransferError:

@@ -5,19 +5,10 @@ Created on Thu Feb 11 14:43:28 2021
 @author: PieterDV
 """
 import os
-import sys
 import pandas as pd
-import numpy as np
 import re
-import requests
-import configparser
 import logging
-import math
-
 import dataVerseUtils
-
-from pyDataverse.api import NativeApi
-from pyDataverse.models import Dataverse
 import json
 
 import generalUtils as gu
@@ -53,7 +44,15 @@ def readSapFile(inInputFile, inConfigFile, logName = ''):
             except Exception as e:
                 logH.error("readSapUsers: %s occured. apiKeyFile=%s",e.__class__.__name__,apiKeyFile)
                 raise 
-        apiToken    = opts.get('DataVerse','apiToken')
+        apiToken    = opts.get('DataVerse','apiToken', fallback = None)
+        apiTokenFile= opts.get('DataVerse','apiTokenFile')
+        if (apiToken is None):
+            try:
+                apiToken = gu.readFile2String(apiTokenFile)
+                logH.info("readSapUsers: apiTokenFile=%s revealed apiToken", apiTokenFile)
+            except Exception as e:
+                logH.error("readSapUsers: %s occured. apiTokenFile=%s",e.__class__.__name__,apiTokenFile)
+                raise 
         signedCertificate = opts.getboolean('DataVerse', 'signedCertificate', fallback = False)
         if (signedCertificate):
             logH.info('readSapUsers: will be expecting signed certificate for DataVerse API')
@@ -147,6 +146,7 @@ def readSapFile(inInputFile, inConfigFile, logName = ''):
             
         errCnt = 0
 
+        activitySummary = {'INS':0,'UPD':0,'DEL':0}
         orgPattern = re.compile('5[0-9][0-9][0-9][0-9][0-9][0-9][0-9]')
         if (create):
             #iterate over rows
@@ -232,6 +232,7 @@ def readSapFile(inInputFile, inConfigFile, logName = ''):
                                     logH.debug("Add user %s to group %s in dataVerse %s", usrId, grpAl, str(grpDV))
                                     putGRP_resp = dvu.addUserToGroup(grpDV, grpAl, usrAtId)
                                     logH.debug(putGRP_resp)
+                                activitySummary['UPD'] = activitySummary['UPD'] + 1
                             else:
                                 #Add user
                                 logH.debug("User %s is new and will be created", usrId)
@@ -249,6 +250,7 @@ def readSapFile(inInputFile, inConfigFile, logName = ''):
                                 logH.debug("Add user %s to group %s in dataVerse %s", row.Username.lower(), grpAl, str(grpDV))
                                 putGRP_resp = dvu.addUserToGroup(grpDV, grpAl, usrAtId)
                                 logH.debug(putGRP_resp)
+                                activitySummary['INS'] = activitySummary['INS'] + 1
                             #count as processed user
                             cnt = cnt + 1
                 except Exception as e:
@@ -281,11 +283,19 @@ def readSapFile(inInputFile, inConfigFile, logName = ''):
                             r = dvu.delUser(usrId)
                             logH.debug(r.content)
                             cnt = cnt + 1
+                            activitySummary['DEL'] = activitySummary['DEL'] + 1
                 except Exception as e:
                     logH.error("User %s could not be properly deleted", row.Username)
                     logH.error("ERROR RECORD %s", row)
                 if (cnt == testNbr and testLimit):
                     break
+
+        logH.warning('Execution Summary:')
+        if (create):
+            logH.warning('New/Added Users : '+str(activitySummary['INS']))
+            logH.warning('Updated Users   : '+str(activitySummary['UPD']))
+        if (delete):
+            logH.warning('Deleted Users   : '+str(activitySummary['DEL']))
 
     except Exception as e:
         logH.error("Error %s occured - unexpected Exception", e.__class__.__name__)

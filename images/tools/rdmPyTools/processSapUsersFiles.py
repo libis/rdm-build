@@ -4,14 +4,8 @@ Created on Thu May  6 13:15:07 2021
 
 @author: PieterDV
 """
-import os
-import sys
-import pandas as pd
-import numpy as np
-import re
 
 import logging
-import math
 
 import readSapUsers as rsu
 import generalUtils as gu

@@ -27,7 +27,7 @@ def check_file(checkF):
         else:
             return True
 
-def crLogger(logF, logName = '', logL = logging.DEBUG):
+def crLogger(logF, logName = ''):
     logging.root.setLevel(logging.NOTSET)    
     # create logger
     logger = logging.getLogger(logName)
@@ -36,7 +36,7 @@ def crLogger(logF, logName = '', logL = logging.DEBUG):
 
     fh     = logging.FileHandler(filename=logF, encoding='utf-8', mode="w")
     fh.setFormatter(formatter)
-    fh.setLevel(logL)
+    fh.setLevel(logging.DEBUG)
     
     errF   = logF+".err"
     eh     = logging.FileHandler(filename=errF, encoding='utf-8', mode="w")
@@ -46,7 +46,7 @@ def crLogger(logF, logName = '', logL = logging.DEBUG):
     # create console handler and set level
     ch = logging.StreamHandler()
     ch.setFormatter(formatter)
-    ch.setLevel(logging.DEBUG)
+    ch.setLevel(logging.WARNING)
     
     # add handlers to logger
     logger.addHandler(ch)    
@@ -62,21 +62,20 @@ def closeLogger(inLog):
         inLog.removeHandler(handler)    
     
 def main(argv):
-  
+    
     configfile = ''
     inputfile  = ''
     outputfile = ''
     logfile    = ''
-    logLevel   = ''
     task       = ''
     try:
-        opts, args = getopt.getopt(argv,"ht:i:c:o:l:L:",["task=","ifile=","cfile=","ofile=","lfile="])
+        opts, args = getopt.getopt(argv,"ht:i:c:o:l:",["task=","ifile=","cfile=","ofile=","lfile="])
     except getopt.GetoptError:
-        print('readOptions.py -t <task> -i <inputfile> -c <configfile> -o <outputfile> -l <logfile> -L <logLevel>')
+        print('readOptions.py -t <task> -i <inputfile> -c <configfile> -o <outputfile> -l <logfile>')
         sys.exit(2)
     for opt, arg in opts:
           if opt == '-h':
-              print('readOptions.py -t <task> -i <inputfile> -c <configfile> -o <outputfile> -l <logfile> -L <logLevel>')
+              print('readOptions.py -t <task> -i <inputfile> -c <configfile> -o <outputfile> -l <logfile>')
               sys.exit()
           elif opt in ("-t", "--task"):
               task = arg
@@ -93,6 +92,7 @@ def main(argv):
     print('Output file is ', outputfile)
     print('Log file is ', logfile)
     print('Config file is ', configfile)
+
     if (task == ''):
         print('Task option must be specified')
         print('Exiting...')
@@ -100,17 +100,12 @@ def main(argv):
     else:
         task = task.upper()
 
-    if (logfile != ''):
-        if (logLevel == ''):
-            logLevel = logging.DEBUG
-        else: #DEBUG/INFO/ERROR/CRITICAL/WARNING/NOTSET 
-            logLevel = logLevel.upper()
-    else:
+    if (logfile == ''):
         print('LogFile must be specifried...')
         print('Exiting...')
         sys.exit()
 
-    logger = crLogger(logfile, task, logLevel)
+    logger = crLogger(logfile, task)
 
     if (task == 'SAPUSERLOAD'):
         if (not (check_file(inputfile))):
@@ -120,10 +115,11 @@ def main(argv):
             logger.error('ConfigFile (%s) was not correctly specified for task %s', configfile, task)
             sys.exit()
             
-        logger.debug('Starting task %s',task)
+        logger.warning('Starting task %s',task)
         #print('Starting task ',task)
         try:
             rsu.readSapFile(inputfile, configfile, task)
+            logger.warning('End of %s - no errors reported', task)
         except eu.apiError:
             logger.error('Api Error')
         except Exception as e:
@@ -133,10 +129,11 @@ def main(argv):
             logger.error('ConfigFile (%s) was not correctly specified for task %s', configfile, task)
             sys.exit()
             
-        logger.debug('Starting task %s',task)
+        logger.warning('Starting task %s',task)
         #print('Starting task ',task)
         try:
             psuf.processSapUsersFiles(configfile, task)
+            logger.warning('End of %s - no errors reported', task)
         except Exception as e:
             logger.error(e.__class__.__name__+" occurred.")
     elif (task == 'GETSAPUSERSFILE'):
@@ -144,10 +141,11 @@ def main(argv):
             logger.error('ConfigFile (%s) was not correctly specified for task %s', configfile, task)
             sys.exit()
             
-        logger.debug('Starting task %s',task)
+        logger.warning('Starting task %s',task)
         #print('Starting task ',task)
         try:
             gsu.getSapUsersFile(configfile, task)
+            logger.warning('End of %s - no errors reported', task)
         except eu.fileTransferError:
             logger.error("File transfer Error")
         except Exception as e:
@@ -157,9 +155,10 @@ def main(argv):
             logger.error('ConfigFile (%s) was not correctly specified for task %s', configfile, task)
             sys.exit()
             
-        logger.debug('Starting task %s',task)
+        logger.warning('Starting task %s',task)
         try: 
             dv2el.dataVerse2Elements(configfile, task)
+            logger.warning('End of %s - no errors reported', task)
         except Exception as e:
             logger.error(e.__class__.__name__+" occurred.")
 
