@@ -574,6 +574,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
             logH.info('dataVerseDataSet2Elements: loaded dataset '+data['identifier']+': '+newId+' should equal '+liriasId)
         else:
             logH.info('dataVerseDataSet2Elements: loaded dataset '+data['identifier']+': '+newId)            
+        logH.warning('dataVerseDataSet2Elements: loaded dataset '+data['identifier']+': '+newId)            
     except Exception as e:
         logH.error("Error dataVerseDataSet2Elements: %s occured. dataVerseId=%s" % (e.__class__.__name__, data['identifier']))
         logH.error('Error dataVerseDataSet2Elements: uploadDataSet Failed')
@@ -603,6 +604,7 @@ def dataVerseDataSet2Elements(inConfigFile, inDataSetFile, logName = ''):
                 toRel.text = "publication("+rel['to-object']+")"
             try:
                 writeLiriasApi.uploadRelationShip(newId, ET.tostring(impRel))
+                logH.warning('dataVerseDataSet2Elements: relationship uploaded '+rel['type-name']+' to '+rel['to-object'])
             except Exception as e:
                 logH.error("Error dataVerseDataSet2Elements: %s occured. Relationship=%s,%s,%s" % (e.__class__.__name__,newId,rel['type-name'],rel['to-object']))
                 logH.error("Error dataVerseDataSet2Elements: uploadRelationship Failed")

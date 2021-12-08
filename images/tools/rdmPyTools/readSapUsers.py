@@ -28,6 +28,7 @@ def printTuple(inTuple, colDict, errCnt, sep = ','):
 
 def readSapFile(inInputFile, inConfigFile, logName = ''):
     try:    
+        detailedDebug = False
         #get loghandler
         logH        = logging.getLogger(logName)
         #read options from configurationfile
@@ -204,7 +205,8 @@ def readSapFile(inInputFile, inConfigFile, logName = ''):
                                 APIUsrUpdate = False
                                 if (APIUsrUpdate):
                                     updateUSR_resp = dvu.updUser(json_usrData)
-                                    logH.debug(updateUSR_resp)
+                                    if (detailedDebug):
+                                        logH.debug(updateUSR_resp)
                                 #Add user to right group(s)
                                 alreadyInGrp = False
                                 #Group the user should be linked to:
@@ -224,14 +226,16 @@ def readSapFile(inInputFile, inConfigFile, logName = ''):
                                             #DELETE http://$server/api/dataverses/$dv/groups/$groupAlias/roleAssignees/$roleAssigneeIdentifier
                                             #resp = api.get_request(baseUrl+"/api/dataverses/239/groups/KULGRP_99999999res")
                                             DELGrpMemberResp = dvu.delUsrFromGroup(existGrpDV, existGrpAl, usrAtId, useRequests)
-                                            logH.debug(DELGrpMemberResp)
+                                            if (detailedDebug):
+                                                logH.debug(DELGrpMemberResp)
                                         else: 
                                             logH.debug("User %s already member of group %s in dataVerse %s - no action needed", usrId, grpAl, grpDV)                            
                                             alreadyInGrp = True
                                 if (not alreadyInGrp):
                                     logH.debug("Add user %s to group %s in dataVerse %s", usrId, grpAl, str(grpDV))
                                     putGRP_resp = dvu.addUserToGroup(grpDV, grpAl, usrAtId)
-                                    logH.debug(putGRP_resp)
+                                    if (detailedDebu):
+                                        logH.debug(putGRP_resp)
                                 activitySummary['UPD'] = activitySummary['UPD'] + 1
                             else:
                                 #Add user
@@ -240,7 +244,8 @@ def readSapFile(inInputFile, inConfigFile, logName = ''):
                                 json_usrData = json.dumps(usrD)
                                 #http://$SERVER/api/admin/authenticatedUsers
                                 createUSR_resp = dvu.addUser(json_usrData)
-                                logH.debug(createUSR_resp)
+                                if (detailedDebug):
+                                    logH.debug(createUSR_resp)
                                 if (not singleGroupSetup):
                                     grpDV = dvDict[usrOrg['id']]['alias']
                                     grpAl = dvDict[usrOrg['id']]['groups']['res']['groupAliasInOwner']
@@ -249,7 +254,8 @@ def readSapFile(inInputFile, inConfigFile, logName = ''):
                                     grpAl = singleGroup
                                 logH.debug("Add user %s to group %s in dataVerse %s", row.Username.lower(), grpAl, str(grpDV))
                                 putGRP_resp = dvu.addUserToGroup(grpDV, grpAl, usrAtId)
-                                logH.debug(putGRP_resp)
+                                if (detailedDebug):
+                                    logH.debug(putGRP_resp)
                                 activitySummary['INS'] = activitySummary['INS'] + 1
                             #count as processed user
                             cnt = cnt + 1

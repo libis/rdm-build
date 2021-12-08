@@ -18,7 +18,8 @@ import generalUtils as gu
 
 class liriasApi:
     def __init__(self, inBaseUrl, inApiUser, inApiPw, logName=''):
-        self.logger = logging.getLogger(logName)
+        self.logName = logName
+        self.logger  = logging.getLogger(logName)
         self.logger.info('Creating an instance of liriasApi')
         self.baseUrl = inBaseUrl
         self.apiUser = inApiUser
@@ -73,7 +74,7 @@ class liriasApi:
         for resError in root.findall('./atom:entry/api:warnings/api:warning',ns):
             errField = resError.attrib['associated-field']
             errTxt   = resError.text
-            print('Field = '+errField+', Text = '+errTxt)
+            self.logger.info('liriasUtils - interpretPutResponse : Field = '+errField+', Text = '+errTxt)
         apiObj = root.find('./atom:entry/api:object',ns)
         pubId  = apiObj.attrib['id']
         return(pubId)
@@ -89,7 +90,7 @@ class liriasApi:
             if (errDesc != ''): 
                 errDesc = errDesc + '\n'
             errDesc = errDesc+errTxt
-            print('Code = '+errCode+', Text = '+errTxt)
+            self.logger.info('liriasUtils - interpretError : Code = '+errCode+', Text = '+errTxt)
         return(errDesc)
     
     def deleteDataset(self, inDataSource, inId):
@@ -159,7 +160,7 @@ class liriasApi:
         #self.logger.error('getPublicationElementsID - '+inIdQuoted)
         for src in searchSourcesDict.values():
             #https://lirias2.t.icts.kuleuven.be:8091/secure-api/v5.5/publication/records/c-inst-1/RDR.CVHLQ2
-            self.logger.error('getPublicationElementsID - Trying '+src+' : '+self.baseUrl+'/publication/records/'+src+'/'+inIdQuoted)
+            self.logger.info('getPublicationElementsID - Trying '+src+' : '+self.baseUrl+'/publication/records/'+src+'/'+inIdQuoted)
             resp = requests.get(self.baseUrl+'/publication/records/'+src+'/'+inIdQuoted, auth = self.auth)    
             root = ET.fromstring(resp.content)
             try:
@@ -233,15 +234,16 @@ class liriasApi:
     
     def getUserNameByKULUid(self, userId):
         try:
-            resp = requests.get(self.baseUrl+'/users?username='+userId, auth=self.auth)    
-            ns = self.ns
+            resp = requests.get(self.baseUrl+'/users?username='+userId, auth=self.auth)
+            #self.logger.info(self.baseUrl+'/users?username='+userId)
             feed = ET.fromstring(resp.content)
-            resObj = feed.find('./api:pagination', ns)
+            resObj = feed.find('./api:pagination', self.ns)
             resNbr = resObj.attrib['results-count']
             if (resNbr == "1"):
-                usrName = feed.find("./atom:entry/atom:title", ns).text
+                usrName = feed.find("./atom:entry/atom:title", self.ns).text
+                self.logger.info('liriasUtils - getUserNameByKULUid : usrName='+usrName)
                 if (usrName != ''):
-                    nameDict = gu.splitName(usrName, self.logger)
+                    nameDict = gu.splitName(usrName, self.logName)
                     return(nameDict)
                 else:
                     raise eu.liriasApiError('Found user '+str(userId)+' but not the name')

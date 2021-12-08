@@ -67,7 +67,7 @@ def processSapUsersFiles(inConfigFile, logName = ''):
         cnt = 0
         for dF in delFiles:
             cnt = cnt + 1
-            logH.info('processSapUsersFiles: DelFile %d - %s',cnt,dF)
+            logH.warning('processSapUsersFiles: DelFile %d - %s',cnt,dF)
             #handle file
             try:
                 handleFile(dF, delFileConfigFile, logName)
@@ -78,17 +78,17 @@ def processSapUsersFiles(inConfigFile, logName = ''):
                 logH.error('processSapUsersFiles : DelFile %s moved to Error directory', dF)
                 gu.moveFile(dF, delErrorDir, logName)
         if (cnt > 0):
-            logH.info('processSapUsersFiles: %d delFiles handled', cnt)
+            logH.warning('processSapUsersFiles: %d delFiles handled', cnt)
         else:
-            logH.info('processSapUsersFiles: No delFiles to be handled')
+            logH.warning('processSapUsersFiles: No delFiles to be handled')
     else:
-        logH.info('processSapUsersFiles: not handling DelFiles - ini setting handleDeletes = False')
+        logH.warning('processSapUsersFiles: not handling DelFiles - ini setting handleDeletes = False')
         
     #CRE/UPD    
     cnt = 0
     for cuF in creUpdFiles:
         cnt = cnt + 1
-        logH.info('processSapUsersFiles: creUpdFile %d - %s',cnt,cuF)
+        logH.warning('processSapUsersFiles: creUpdFile %d - %s',cnt,cuF)
         #handle file
         try:
             handleFile(cuF, creUpdFileConfigFile, logName)
@@ -99,9 +99,9 @@ def processSapUsersFiles(inConfigFile, logName = ''):
             logH.error('processSapUsersFiles : creUpdFile %s moved to Error directory', cuF)
             gu.moveFile(cuF, creUpdErrorDir, logName)
     if (cnt > 0):
-        logH.info('processSapUsersFiles: %d creUpdFiles handled', cnt)
+        logH.warning('processSapUsersFiles: %d creUpdFiles handled', cnt)
     else:
-        logH.info('processSapUsersFiles: No creUpdFiles to be handled')
+        logH.warning('processSapUsersFiles: No creUpdFiles to be handled')
         
   
     #get additions/updates and removed users in 2 separate files
