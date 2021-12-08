@@ -9,16 +9,17 @@ ENV['DATA_DIR'] ||= File.join('/', 'opt', 'data')
 ENV['EXPORT_DIR'] ||= File.join(ENV['DATA_DIR'], 'exports')
 FileUtils.mkdir_p(ENV['EXPORT_DIR'])
 
-ENV['COLLECTION'] ||= 'rdr'
+ENV['COLLECTION'] ||= ':root'
 
 ENV['FROM_DATE_FILE'] ||= File.join(ENV['EXPORT_DIR'], 'last_export_date')
 
 from_date = File.exist?(ENV['FROM_DATE_FILE']) ? Date.parse(File.read(ENV['FROM_DATE_FILE'])) : Date.new(2021)
 
-puts "Extracting Datasets from Dataverse Collection '#{ENV['COLLECTION']}'"
+dv = Dataverse::Dataverse.id(ENV['COLLECTION'])
+
+puts "Extracting Datasets from Dataverse Collection '#{dv['name']}'"
 puts "published between #{from_date} and #{Date.today} ..."
 
-dv = Dataverse::Dataverse.id(ENV['COLLECTION'])
 i = 0
 dv.each_dataset do |ds|
   next unless ds.version(:published)
