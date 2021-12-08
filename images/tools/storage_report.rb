@@ -12,6 +12,10 @@ ENV['REPORTS_DIR'] ||= File.join(ENV['DATA_DIR'], 'reports')
 
 FileUtils.mkdir_p(ENV['REPORTS_DIR'])
 
+unless File.exist?(ENV['ORCID_FILE'])
+  puts "ERROR: ORCID file '#{ENV['ORCID_FILE']}'does not exist"
+end
+
 orcid_map = {}
 CSV.foreach(ENV['ORCID_FILE']) do |row|
   orcid_map[row.last.downcase] = row.first.downcase
@@ -23,8 +27,9 @@ storage_map = {}
 error_ds = []
 
 puts "Collecting Datasets storage from Dataverse Collection '#{dv['name']}' ..."
+puts "Using ORCID file '#{ENV['ORCID_FILE']}."
 
-root_dv.each_dataset do |ds|
+dv.each_dataset do |ds|
   authors = ds.metadata['author']
   unr = nil
   authors.each do |author|
