@@ -20,9 +20,9 @@ RUN chmod +x /usr/bin/docker-entrypoint.sh \
 
 WORKDIR ${APP_PATH}
 
-COPY --chown=${APP_USER}:${APP_GROUP} Gemfile* *.rb *.sh ${APP_PATH}/
+COPY --chown=${APP_USER}:${APP_GROUP} Gemfile* ${APP_PATH}/
 
-RUN bundle install && chmod +x *.rb *.sh
+RUN bundle install
 
 USER ${APP_USER}
 
@@ -33,6 +33,10 @@ RUN python3 -m venv venv \
  && pip install setuptools configparser numpy pandas pyDataverse pysftp requests \
  && echo ". ./venv/bin/activate" >> ${APP_PATH}/.bashrc
 
-COPY rdmPyTools ${APP_PATH}/rdmPyTools
+COPY --chown=${APP_USER}:${APP_GROUP} *.rb *.sh ${APP_PATH}/
+RUN chmod +x *.rb *.sh
+
+COPY --chown=${APP_USER}:${APP_GROUP} rdmPyTools ${APP_PATH}/rdmPyTools
+RUN chmod +x rdmPyTools/*.py
 
 CMD ["irb"]
