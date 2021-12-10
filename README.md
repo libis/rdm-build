@@ -3,22 +3,21 @@
 
 This repository contains the data and scripts that are needed to build the images used in our RDM repository installation.
 
-We build 5 Docker images with this repository:
+We build 4 Docker images with this repository:
 
 - dataverse : the main image that will be able to run the Dataverse application
 - solr : a customized image that runs the Solr index server
 - proxy : an image that provides a reverse proxy in front of all the containers. It will also run the Shibboleth SP server that protects the access to the applications.
 - mailcatcher : an image that behaves as a mail server, but will not forward the emails to the user's mailboxes. Instead all emails are displayed in a web page.
-- tools : a base image with an environment that allows to run reports, exports or any maintenance scripts.
 
 There are two version of the images that can be built. De default image version is a local build and is used when deployment will happen to the local machine, typically in development environments.
 
 The other image version is one that will be deployed on a test or production server and is built to be published to a docker repository.
 
-You select which version of the image you will be building by setting the RDM_STAGE environment variable. The value `dev` - which is de default - will build local images, while the value `prod` will build repository images.
+You select which version of the image you will be building by setting the STAGE environment variable. The value `dev` - which is de default - will build local images, while the value `prod` will build repository images.
 
 ```
-$ export RDM_STAGE=prod
+$ export STAGE=prod
 ```
 
 The actions are enabled with make. The Makefile contains a limited set of targets:
@@ -196,12 +195,6 @@ Running only the Ruby-based mailcatcher tool, this image is very simple. Configu
 
 - `HTTP_PORT` environment variable : port where the web interface will listen on
 - `SMTP_PORT` environment variable : port where the mail server will listen on
-
-## Tools image
-
-The image is built from a ruby image with added support for the Dataverse API gem. A menu with common tools is available.
-
-The tools in the image may require some data volumes to be mounted. It is recommended to mount a host location to the `/opt/data` folder to capture any output from the tools.
 
 # Local test deployment
 

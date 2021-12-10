@@ -2,7 +2,6 @@
 .*.swp
 dvinstall.zip
 /dvinstall/
-/rdmPyTools/
 /images/dataverse/dataverse.war
 images/dataverse/dvinstall/jhove.conf
 images/dataverse/dvinstall/jhoveConfig.xsd

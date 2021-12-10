@@ -1,6 +1,6 @@
-RDM_STAGE ?= dev
+STAGE ?= dev
 
-include env.$(RDM_STAGE)
+include env.$(STAGE)
 export
 
 .SILENT:
@@ -26,9 +26,9 @@ help: ## Show list and info on common tasks
 	@echo "$$HELPTEXT"
 	$(call help-targets, $(MAKEFILE_LIST))
 
-build: build-index build-mailcatcher build-proxy build-dataverse build-tools ## Build all custom docker images
+build: build-index build-mailcatcher build-proxy build-dataverse ## Build all custom docker images
 
-push: push-index push-mailcatcher push-proxy push-dataverse push-tools ## Publish all custom docker images
+push: push-index push-mailcatcher push-proxy push-dataverse ## Publish all custom docker images
 
 # DEVELOPMENT TASKS
 ######################################################################################################################
@@ -98,23 +98,6 @@ build-proxy: ## Create the docker image for the Shibboleth Service Provider
 	docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
 		-t $(PROXY_IMAGE_TAG) ./images/proxy
 
-download-tools:
-	if ! [[ -d rdmPyTools ]]; then \
-		echo "Cloning rdmPyTools ..."; git clone git@github.com:libis/rdmPyTools.git; \
-	else \
-		echo "Updating rdmPyTools ..."; cd rdmPyTools; git pull; cd -; \
-	fi
-
-update-tools: download-tools
-	echo "Updating Gem bundle ..."
-	cd images/tools; bundle update; cd -
-	$(CP) --delete --dirs rdmPyTools/bin/*.py images/tools/rdmPyTools/
-
-build-tools: update-tools ## Create the docker image for the Tools service
-	echo "Building Tools image '$(TOOLS_IMAGE_TAG)'..."
-	docker build -q --build-arg APP_USER_ID=$(USER_ID) --build-arg APP_GROUP_ID=$(GROUP_ID) \
-		-t $(TOOLS_IMAGE_TAG) ./images/tools
-
 push-dataverse: ## Publish the docker image for the dataverse service
 	docker push $(DATAVERSE_IMAGE_TAG)
 
@@ -126,6 +109,3 @@ push-mailcatcher: ## Publish the docker image for the mail catcher service
 
 push-proxy: ## Publish the docker image for the Shibboleth Service Provider
 	docker push $(PROXY_IMAGE_TAG)
-
-push-tools: ## Publish the docker image for the Tools service
-	docker push $(TOOLS_IMAGE_TAG)

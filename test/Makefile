@@ -58,22 +58,11 @@ restart: down up wait_dv ## Stop and restart all services
 status: ## List all running services
 	docker-compose ps
 
-.PHONY: tools
-tools: ## Run tools container
-	docker run --rm -it --network test_app_net -v $(PWD)/$(TOOLS_DATA):/opt/data -v $(PWD)/$(TOOLS_SCRIPTS):/opt/app/scripts -v $(PWD)/secrets:/run/secrets:ro \
-		-e DATAVERSE_SERVICE_HOST=dataverse -e DATAVERSE_SERVICE_PORT_HTTP=8080 --hostname tools --name "tools-$$(date +'%Y%m%d-%H%M%S')" \
-		$(TOOLS_IMAGE_TAG) bash -c ./menu.sh
-
-.PHONY: shell
-shell: ## Run shell in tools container
-	docker run --rm -it --network test_app_net -v $(PWD)/$(TOOLS_DATA):/opt/data -v $(PWD)/$(TOOLS_SCRIPTS):/opt/app/scripts -v $(PWD)/secrets:/run/secrets:ro \
-		-e DATAVERSE_SERVICE_HOST=dataverse -e DATAVERSE_SERVICE_PORT_HTTP=8080 --hostname tools --name "tools-$$(date +'%Y%m%d-%H%M%S')" \
-		$(TOOLS_IMAGE_TAG) bash
 
 # INITIALIZATION
 ######################################################################################################################
 DIRS := $(DV_FILES) $(DV_DUMPS) $(DV_UPLOADS) $(DV_LANG_DIR) $(DB_DATA) $(INDEX_DATA) $(DOCROOT) \
-				$(PROXY_LOGS)/httpd $(PROXY_LOGS)/shib $(DBADMIN_DATA) $(DBADMIN_LOGS) $(TOOLS_DATA) $(TOOLS_SCRIPTS)
+				$(PROXY_LOGS)/httpd $(PROXY_LOGS)/shib $(DBADMIN_DATA) $(DBADMIN_LOGS)
 
 .PHONY: reset ### Reset the installation - deletes all data, including database and index
 reset: ### Stops all services and clears all the data. ALL DATA WILL BE PERMANENTLY LOST!!
