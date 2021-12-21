@@ -21,7 +21,7 @@ RUN echo "Changing user and group id ..." \
  && echo "Fixing file group ownership ..." \
  && find / -xdev -group ${SOLR_GID} -exec chgrp ${GROUP_ID} {} \;
 
-ENV SOLR_OPTS="-Dsolr.jetty.request.header.size=102400 -Dlog4j2.formatMsgNoLookups=true"
+ENV SOLR_OPTS="-Dsolr.jetty.request.header.size=102400"
 
 # Install configuration defaults
 COPY conf/* /opt/solr/server/solr/configsets/_default/conf/
