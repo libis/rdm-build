@@ -24,20 +24,21 @@ RUN echo "Changing user and group id ..." \
 ENV SOLR_OPTS="-Dsolr.jetty.request.header.size=102400"
 
 # Install configuration defaults
-COPY conf/* /opt/solr/server/solr/configsets/_default/conf/
+RUN cp -r /opt/solr/server/solr/configsets/_default /opt/solr/server/solr/configsets/dataverse \
+ && rm /opt/solr/server/solr/configsets/dataverse/conf/managed-schema
+COPY conf/* /opt/solr/server/solr/configsets/dataverse/conf/
 
 # Install the update schema script
 COPY scripts/* /opt/docker-solr/scripts/
 
 # Patch the copied files
-RUN rm /opt/solr/server/solr/configsets/_default/conf/managed-schema \
- && sed -i -e "s#<luceneMatchVersion>[0-9.]*</luceneMatchVersion>#<luceneMatchVersion>${SOLR_VERSION}</luceneMatchVersion>#" \
-        /opt/solr/server/solr/configsets/_default/conf/solrconfig.xml \
+RUN sed -i -e "s#<luceneMatchVersion>[0-9.]*</luceneMatchVersion>#<luceneMatchVersion>${SOLR_VERSION}</luceneMatchVersion>#" \
+        /opt/solr/server/solr/configsets/dataverse/conf/solrconfig.xml \
  && chmod 755 /opt/docker-solr/scripts/updateSchema.sh
 
 # Run as solr user
 USER ${SOLR_USER}
-CMD ["solr-precreate", "collection1"]
+CMD ["solr-precreate", "collection1", "dataverse"]
 
 ## Prepare schema updater sidecar
 #ARG WEBHOOK_VERSION=2.8.0
