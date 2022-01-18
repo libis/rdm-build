@@ -38,11 +38,4 @@ RUN sed -i -e "s#<luceneMatchVersion>[0-9.]*</luceneMatchVersion>#<luceneMatchVe
 
 # Run as solr user
 USER ${SOLR_USER}
-CMD ["solr-precreate", "collection1", "dataverse"]
-
-## Prepare schema updater sidecar
-#ARG WEBHOOK_VERSION=2.8.0
-#RUN wget --no-verbose -O webhook.tar.gz https://github.com/adnanh/webhook/releases/download/${WEBHOOK_VERSION}/webhook-linux-amd64.tar.gz && \
-#    tar -xzf webhook.tar.gz --strip-components=1 -C ${SCHEMA_SCRIPT_DIR} && \
-#    rm webhook.tar.gz && \
-#    chmod +x ${SCHEMA_SCRIPT_DIR}/*.sh
+CMD ["solr-precreate", "collection1", "/opt/solr/server/solr/configsets/dataverse"]
