@@ -113,13 +113,16 @@ settings_loop() {
     if [ "$title" != "" ]
     then
       echo "  ... $(obj_name $f)"
-      jq -r '.data[]|[.name, .value]|@tsv' $f | while IFS=$'\t' read -r name value
+      jq -r '.data[]|[.name, .value]|@tsv' $f | while IFS=$'\t' read -r name value file
       do
-        if [ "$value" == "" ]
+        if [ "$file" != "" ]
         then
-          api DELETE "$url/$name"
-        else
+          api PUT "$url/$name" --upload-file "$(dirname $f)/$file"
+        elif [ "$value" != "" ]
+        then
           api PUT "$url/$name" -d "$value"
+        else
+          api DELETE "$url/$name"
         fi
       done
     fi
