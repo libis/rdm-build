@@ -113,7 +113,7 @@ settings_loop() {
     if [ "$title" != "" ]
     then
       echo "  ... $(obj_name $f)"
-      jq -r '.data[]|[.name, .value]|@tsv' $f | while IFS=$'\t' read -r name value file
+      jq -r '.data[]|[.name, .value, .file]|@tsv' $f | while read_tdf_line name value file
       do
         if [ "$file" != "" ]
         then
