@@ -31,4 +31,4 @@ api PUT 'admin/settings/:SolrHostColonPort' -d "${SOLR_SERVICE_HOST}:${SOLR_SERV
 
 # Configure final security settings
 api_by_token
-builtin_disable
+builtin_enable
