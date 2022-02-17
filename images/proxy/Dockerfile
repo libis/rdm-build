@@ -1,4 +1,4 @@
-FROM centos:8
+FROM almalinux:8
 
 # s6-overlay version
 ARG S6_OVERLAY_VERSION=2.2.0.3
@@ -14,7 +14,7 @@ ENV LC_ALL=C.UTF-8
 # And:
 # - remove default web server configuration files
 RUN echo "Installing web server ..." \
- && rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial \
+ && rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux \
  && dnf install --skip-broken --rpmverbosity=critical --nodocs -q -y wget httpd mod_ssl \
  && echo "Installing Shibboleth ..." \
  && wget --no-verbose --quiet -O /etc/yum.repos.d/security:shibboleth.repo  \
