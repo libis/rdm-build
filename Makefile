@@ -67,6 +67,8 @@ copy_dataverse: download_dataverse ## Distribute the Dataverse installation file
 	$(CP) dvinstall/data/role-member.json                  images/dataverse/dvinstall/data/roles/08-member.json
 	echo "  ... root collection"
 	$(CP) dvinstall/data/dv-root.json                      images/dataverse/dvinstall/data/dv-root.json
+	echo "  ... licenses"
+	$(CP) dvinstall/data/licenses/licenseCC-BY-4.0.json    images/dataverse/dvinstall/data/licenses/01-licenseCC-BY-4.0.json
 	echo "  ... system admin"
 	$(CP) dvinstall/data/user-admin.json                   images/dataverse/dvinstall/data/user-admin.json
 	echo "  ... jhove configuration"
