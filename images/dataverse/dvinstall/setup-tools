@@ -136,3 +136,12 @@ superAdmin() {
   "$@"
   URL_HEADERS=()
 }
+
+# Perform SQL command on the database
+###############################################
+sql() {
+  for cmd
+  do
+    psql -h "${POSTGRES_SERVER}" -p "${POSTGRES_PORT}" "${POSTGRES_DATABASE}" "${POSTGRES_USER}" -S -q -c "${cmd}"
+  done
+}
