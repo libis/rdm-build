@@ -72,9 +72,10 @@ echo "Setting up role assignments per collection ..."
 superAdmin datafiles_loop 'dataverses/${/0}/assignments' collections/role-assignments
 echo
 
-echo "Loading licenses ..."
-superAdmin datafiles_loop 'licenses' licenses
-echo
+# We do not install the extra licenses by default
+# echo "Loading licenses ..."
+# superAdmin datafiles_loop 'licenses' licenses
+# echo
 
 echo "Configuring external tools ..."
 superAdmin datafiles_loop 'admin/externalTools' external-tools
