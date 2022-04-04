@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-sed -i -e 's/^dataset\.manageTemplates\.tab\.action\.btn\.edit=.*/dataset.manageTemplates.tab.action.btn.edit=Edit Template/' ${LANG_DIR}/Bundle.properties
-sed -i -e 's/dataset\.editBtn/dataset.manageTemplates.tab.action.btn.edit/' ${DOMAIN_DIR}/applications/dataverse/manage-templates.xhtml
-sed -i -E 's|^((\s*)xmlns:c="http://java.sun.com/jsp/jstl/core")$|\1\n\2xmlns:fn="http://java.sun.com/jsp/jstl/functions"|' ${DOMAIN_DIR}/applications/dataverse/metadataFragment.xhtml
