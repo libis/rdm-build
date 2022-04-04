@@ -43,7 +43,7 @@ download_dataverse: ## Download the Dataverse installation package
 
 CP=rsync --info=name1,name2,del -ptgo
 
-copy_dataverse: download_dataverse ## Distribute the Dataverse installation files to the images
+copy_dataverse: ## Distribute the Dataverse installation files to the images
 	echo "Copying installation files ..."
 	echo "  ... war file"
 	$(CP) dvinstall/dataverse.war                          			images/dataverse/dataverse.war

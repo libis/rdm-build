@@ -25,6 +25,7 @@ The actions are enabled with make. The Makefile contains a limited set of target
 - `build` : build all images
 - `push` : publish the images to the repository
 - `download_dataverse` : download the Dataverse installation package and prepare the files to be included in the images
+- `copy_dataverse` : copy the files from the downloaded installation package into the image directory
 
 There are also targets for building and publishing a single image. Use the `help` target to list the other options.
 
@@ -34,7 +35,7 @@ The dataverse image is based on a community version of the Payara server docker 
 
 It will make sure that the application is running as a given User ID and Group ID because a lot of data will be stored on host mounted volumes and needs to be accessible from the host user for maintenance tasks like backup and reporting.
 
-The downloaded Dataverse installation files are be copied into the image to enable initialization of the Dataverse installation when the image is deployed. Make sure you run the `download_dataverse` make task before building the image.
+The downloaded Dataverse installation files are be copied into the image to enable initialization of the Dataverse installation when the image is deployed. When building the image for the first time or when updating the Dataverse version, make sure you run the `download_dataverse` and `copy_dataverse` make tasks before building the image.
 
 ### image structure
 
