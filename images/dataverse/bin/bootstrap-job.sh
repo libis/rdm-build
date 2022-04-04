@@ -18,10 +18,10 @@ api_only_local
 builtin_enable
 
 # Initialize common data structures to make Dataverse usable
-"${DVINSTALL_DIR}/setup-all.sh"
+"${DVINSTALL_DIR}/setup-once.sh"
 
 # Initial configuration of Dataverse
-"${SCRIPT_DIR}/config-job.sh"
+"${DVINSTALL_DIR}/config-job.sh"
 
 # Configure Solr location
 api PUT 'admin/settings/:SolrHostColonPort' -d "${SOLR_SERVICE_HOST}:${SOLR_SERVICE_PORT_HTTP}"

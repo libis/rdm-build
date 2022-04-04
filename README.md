@@ -44,18 +44,18 @@ The downloaded Dataverse installation files are be copied into the image to enab
   - `builtin-users-*.sh` scripts that enable/disable the APIs to create builtin users
   - `security-*.sh` scripts that secure admin API by token/localhost-only
   - `bootstrap-job.sh` main script for bootstrapping the application
-  - `config-job.sh` bootstrap part that sets database settings via environment variables
   - `config` library of functions for API calls
 - `dvinstall` folder with setup scripts and data
+  - `config-job.sh` script that sets database settings via environment variables
   - `jhove*` files that configure JHove in the application
   - `data` folder with data files for objects to create
   - `settings-update.sh` script that re-applies the settings data
-  - `setup-all.sh` script dat scans the data files and performs the API actions to create the objects
+  - `setup-once.sh` script dat scans the data files and performs the API actions to create the objects
   - `setup-tools` library of functions for data file actions
 
 The Docker container will execute the `init_*.sh` scripts in alphabetical order when  booting the image. Our script will deploy the dataverse war file and prepare scripts for Payara's asadmin command to be executed when the application server starts. The script will skip its tasks when the application is already deployed.
 
-The `bootstrap-job.sh` script needs to be called manually and should only be called when the application has started completely. It will delegate most of its work to the `setup-all.sh` and `config-job.sh` scripts. The first script will scan the `data` folder for files with data (mostly JSON) and execute API calls to load the data. The second script scans the environment for certain variables and configures the application from these.
+The `bootstrap-job.sh` script needs to be called manually and should only be called when the application has started completely. It will delegate most of its work to the `setup-once.sh` and `config-job.sh` scripts. The first script will scan the `data` folder for files with data (mostly JSON) and execute API calls to load the data. The second script scans the environment for certain variables and configures the application from these.
 
 The `data` folder contains the settings for a default and out-of-the-box installation of Dataverse. But the script will also look in a custom installation directory for data files that override or append the `data` files. Any file and subfolder in the custom `overwrite` folder will override the standard `data` files and folders. The subfolders in the custom `data` folder will be scanned in addition to the corresponding standard `data` subfolder or custom `overwrite` subfolder. In other words to process subfolder 'A':
 - if subfolder 'A' exists in custom 'overwrite' folder, parse that folder
@@ -133,7 +133,8 @@ As explained above, the image allows customisation at run-time by supplying a cu
 
 Next to the subfolders the custom installation folder may also contain:
 
-- `setup-all.sh` script that will be executed as part of the bootstrap task and contains additional configuration steps
+- `config-job.sh` script that configures the application; the script should be allowed to run multiple times
+- `setup-once.sh` script that will be executed as part of the bootstrap task and contains additional configuration steps
 - `preboot` file containing any additional asadmin commands that should be executed before the application server boots
 - `postboot` file containing any additional asadmin commands that should be executed right after the application server boots
 - any other custom script you may want to execute in the container
@@ -182,7 +183,7 @@ The update script requires the Dataverse API key and expects that to be availabl
 
 ## Proxy image
 
-This image will be the fron-end of the application installation. It contains both an Apache web server and the Shibboleth daemon.
+This image will be the front-end of the application installation. It contains both an Apache web server and the Shibboleth daemon.
 
 The configuration of the Apache server is to be defined at runtime by mounting configuration files in the /etc/httpd/conf.d folder, but it is expected that it will perform as a reverse proxy for the Dataverse container and can delegate certain paths to the Shibboleth plugin or other containers.
 

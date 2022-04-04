@@ -29,3 +29,9 @@ else
   echo "  none found"
 fi
 echo
+
+. ${DVINSTALL_DIR}/setup-tools
+
+# Custom configuration
+CUSTOMSCRIPT="${CUSTOM_INSTALL}/config-job.sh"
+[[ -e "${CUSTOMSCRIPT}" ]] && "${CUSTOMSCRIPT}"

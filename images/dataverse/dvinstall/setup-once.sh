@@ -80,6 +80,6 @@ echo
 echo "Configuring external tools ..."
 superAdmin datafiles_loop 'admin/externalTools' external-tools
 
-# Custom configuration
-CUSTOMSCRIPT="${CUSTOM_INSTALL}/setup-all.sh"
+# Custom setup
+CUSTOMSCRIPT="${CUSTOM_INSTALL}/setup-once.sh"
 [[ -e "${CUSTOMSCRIPT}" ]] && "${CUSTOMSCRIPT}" "${adminKey}"
