@@ -35,7 +35,7 @@ The dataverse image is based on a community version of the Payara server docker 
 
 It will make sure that the application is running as a given User ID and Group ID because a lot of data will be stored on host mounted volumes and needs to be accessible from the host user for maintenance tasks like backup and reporting.
 
-The downloaded Dataverse installation files are be copied into the image to enable initialization of the Dataverse installation when the image is deployed. When building the image for the first time or when updating the Dataverse version, make sure you run the `download_dataverse` and `copy_dataverse` make tasks before building the image.
+The Dataverse installation files are part of the image to enable initialization of the Dataverse installation when the image is deployed. When updating the Dataverse version, make sure you run the `download_dataverse` and `copy_dataverse` make tasks before building the image to assure that the installation files are updated. Then consult the `git diff` to check if any changes need to be applied to the custom installation scripts.
 
 ### image structure
 
