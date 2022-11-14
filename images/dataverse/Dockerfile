@@ -1,4 +1,4 @@
-ARG PAYARA_VERSION=5.2021.3
+ARG PAYARA_VERSION=5.2021.4
 FROM payara/server-full:${PAYARA_VERSION}-jdk11
 
 # The first section requires root privileges
