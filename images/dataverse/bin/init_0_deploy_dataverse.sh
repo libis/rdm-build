@@ -111,7 +111,7 @@ echo "  - EJB Timer."
 # echo "set configs.config.server-config.ejb-container.ejb-timer-service.timer-datasource=jdbc/VDCNetDS" >> ${DV_POSTBOOT}
 
 echo "  - AJP connector"
-echo "create-network-listener --protocol http-listener-1 --listenerport 8009 --jkenabled true jk-connector" >> "${DV_POSTBOOT}"
+echo "create-network-listener --protocol http-listener-1 --listenerport 8009 --jkenabled true jk-connector" >> "${DV_PREBOOT}"
 
 # Disable logging for grizzly SSL problems -- commented out as this is not GF 4.1
 # echo "set-log-levels org.glassfish.grizzly.http.server.util.RequestUtils=SEVERE" >> ${DV_POSTBOOT}
