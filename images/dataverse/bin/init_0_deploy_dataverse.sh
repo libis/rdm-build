@@ -113,6 +113,9 @@ echo "  - EJB Timer."
 echo "  - AJP connector"
 echo "create-network-listener --protocol http-listener-1 --listenerport 8009 --jkenabled true jk-connector" >> "${DV_PREBOOT}"
 
+echo "  - Storage jvm-options"
+echo 'create-jvm-options "-Ddataverse.files.file.allow-out-of-band-upload=true"' >> ${DV_PREBOOT}
+
 # Disable logging for grizzly SSL problems -- commented out as this is not GF 4.1
 # echo "set-log-levels org.glassfish.grizzly.http.server.util.RequestUtils=SEVERE" >> ${DV_POSTBOOT}
 
