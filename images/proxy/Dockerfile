@@ -7,6 +7,8 @@ ARG S6_OVERLAY_MD5=e49a47715f5f187928c98e6eaba41a39
 # Set proper locale
 ENV LC_ALL=C.UTF-8
 
+COPY shibboleth.repo /etc/yum.repos.d/shibboleth.repo
+
 # Install:
 # - apache web server v 2.4
 # - shibboleth
@@ -17,9 +19,7 @@ RUN echo "Installing web server ..." \
  && rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux \
  && dnf install --skip-broken --rpmverbosity=critical --nodocs -q -y wget httpd mod_ssl \
  && echo "Installing Shibboleth ..." \
- && wget --no-verbose --quiet -O /etc/yum.repos.d/security:shibboleth.repo  \
-    http://download.opensuse.org/repositories/security:/shibboleth/CentOS_8/security:shibboleth.repo \
- && dnf install --skip-broken --rpmverbosity=critical --nodocs -q -y --nogpgcheck shibboleth.x86_64 shibboleth-embedded-ds \
+ && dnf install --skip-broken --rpmverbosity=critical --nodocs -q -y shibboleth.x86_64 shibboleth-embedded-ds \
  && echo "Installing S6 Overlay ..." \
  && wget --no-verbose --quiet -O /tmp/s6-overlay.tgz \
     https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz \
