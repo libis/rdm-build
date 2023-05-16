@@ -25,7 +25,7 @@ ENV DATA_DIR=/data\
     UPLOAD_DIR=/uploads\
     DOMAIN_DIR=${PAYARA_DIR}/glassfish/domains/${DOMAIN_NAME}\
     DVINSTALL_DIR=${HOME_DIR}/dvinstall\
-    JVM_ARGS="-Ddataverse.timerServer=true -Xmx2048m -Xms2048m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=\${ENV=DUMPS_DIR} -XX:MaxMetaspaceSize=2g -XX:MetaspaceSize=256m -Dfish.payara.classloading.delegate=false -XX:+UseG1GC -XX:+UseStringDeduplication -XX:+DisableExplicitGC"
+    JVM_ARGS="-Ddataverse.timerServer=true -Xmx24g -Xms4g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=\${ENV=DUMPS_DIR} -XX:MaxMetaspaceSize=2g -XX:MetaspaceSize=256m -Dfish.payara.classloading.delegate=false -XX:+UseG1GC -XX:+UseStringDeduplication -XX:+DisableExplicitGC"
 
 # Create basic paths
 RUN mkdir -p               ${DATA_DIR} ${DUMPS_DIR} ${UPLOAD_DIR} ${DVINSTALL_DIR} ${SCRIPT_DIR}/init.d \
