@@ -1,9 +1,0 @@
-{
-  "title": "upload methods",
-  "data": [
-    {
-      "name": ":UploadMethods",
-      "value": "native/http"
-    }
-  ]
-}

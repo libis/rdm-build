@@ -26,75 +26,34 @@ help: ## Show list and info on common tasks
 	@echo "$$HELPTEXT"
 	$(call help-targets, $(MAKEFILE_LIST))
 
-build: build-index build-mailcatcher build-proxy build-dataverse ## Build all custom docker images
+build: build-index build-dvsolr build-mailcatcher build-proxy build-dataverse ## Build all custom docker images
 
-push: push-index push-mailcatcher push-proxy push-dataverse ## Publish all custom docker images
+push: push-index push-dvsolr push-mailcatcher push-proxy push-dataverse ## Publish all custom docker images
 
 # DEVELOPMENT TASKS
 ######################################################################################################################
-
-download_dataverse: ## Download the Dataverse installation package
-	rm -f dvinstall.zip
-	echo "Downloading Dataverse installation package ..."
-	wget --quiet -nc -c https://github.com/IQSS/dataverse/releases/download/v$(DATAVERSE_VERSION)/dvinstall.zip || true
-	rm -fr dvinstall/
-	echo "Unzipping package ..."
-	unzip -q dvinstall.zip
-
-CP=rsync --info=name1,name2,del -ptgo
-
-copy_dataverse: ## Distribute the Dataverse installation files to the images
-	echo "Copying installation files ..."
-	echo "  ... war file"
-	$(CP) dvinstall/dataverse.war                          			images/dataverse/dataverse.war
-	echo "  ... metadata blocks"
-	$(CP) dvinstall/data/metadatablocks/citation.tsv       			images/dataverse/dvinstall/data/metadatablocks/01-citation.tsv
-	$(CP) dvinstall/data/metadatablocks/geospatial.tsv     			images/dataverse/dvinstall/data/metadatablocks/02-geospatial.tsv
-	$(CP) dvinstall/data/metadatablocks/social_science.tsv 			images/dataverse/dvinstall/data/metadatablocks/03-social_science.tsv
-	$(CP) dvinstall/data/metadatablocks/astrophysics.tsv   			images/dataverse/dvinstall/data/metadatablocks/04-astrophysics.tsv
-	$(CP) dvinstall/data/metadatablocks/biomedical.tsv     			images/dataverse/dvinstall/data/metadatablocks/05-biomedical.tsv
-	$(CP) dvinstall/data/metadatablocks/journals.tsv       			images/dataverse/dvinstall/data/metadatablocks/06-journals.tsv
-	echo "  ... authentication providers"
-	$(CP) dvinstall/data/authentication-providers/builtin.json 	images/dataverse/dvinstall/data/authentication-providers/01-builtin.json
-	echo "  ... roles"
-	$(CP) dvinstall/data/role-admin.json                   			images/dataverse/dvinstall/data/roles/01-admin.json
-	$(CP) dvinstall/data/role-filedownloader.json          			images/dataverse/dvinstall/data/roles/02-filedownloader.json
-	$(CP) dvinstall/data/role-fullContributor.json         			images/dataverse/dvinstall/data/roles/03-fullContributor.json
-	$(CP) dvinstall/data/role-dvContributor.json           			images/dataverse/dvinstall/data/roles/04-dvContributor.json
-	$(CP) dvinstall/data/role-dsContributor.json           			images/dataverse/dvinstall/data/roles/05-dsContributor.json
-	$(CP) dvinstall/data/role-editor.json                  			images/dataverse/dvinstall/data/roles/06-editor.json
-	$(CP) dvinstall/data/role-curator.json                 			images/dataverse/dvinstall/data/roles/07-curator.json
-	$(CP) dvinstall/data/role-member.json                  			images/dataverse/dvinstall/data/roles/08-member.json
-	echo "  ... root collection"
-	$(CP) dvinstall/data/dv-root.json                      			images/dataverse/dvinstall/data/dv-root.json
-	echo "  ... licenses"
-	$(CP) dvinstall/data/licenses/licenseCC-BY-4.0.json    			images/dataverse/dvinstall/data/licenses/01-licenseCC-BY-4.0.json
-	$(CP) dvinstall/data/licenses/licenseCC-BY-NC-4.0.json 			images/dataverse/dvinstall/data/licenses/02-licenseCC-BY-NC-4.0.json
-	$(CP) dvinstall/data/licenses/licenseCC-BY-NC-ND-4.0.json		images/dataverse/dvinstall/data/licenses/03-licenseCC-BY-NC-ND-4.0.json
-	$(CP) dvinstall/data/licenses/licenseCC-BY-NC-SA-4.0.json   images/dataverse/dvinstall/data/licenses/04-licenseCC-BY-NC-SA-4.0.json
-	$(CP) dvinstall/data/licenses/licenseCC-BY-ND-4.0.json    	images/dataverse/dvinstall/data/licenses/05-licenseCC-BY-ND-4.0.json
-	$(CP) dvinstall/data/licenses/licenseCC-BY-SA-4.0.json    	images/dataverse/dvinstall/data/licenses/06-licenseCC-BY-SA-4.0.json
-	echo "  ... system admin"
-	$(CP) dvinstall/data/user-admin.json                   			images/dataverse/dvinstall/data/user-admin.json
-	echo "  ... jhove configuration"
-	$(CP) dvinstall/jhove.conf                             			images/dataverse/dvinstall/jhove.conf
-	$(CP) dvinstall/jhoveConfig.xsd                        			images/dataverse/dvinstall/jhoveConfig.xsd
-	echo "  ... Solr configuration"
-	$(CP) dvinstall/schema.xml                             			images/solr/conf/schema.xml
-	$(CP) dvinstall/solrconfig.xml                         			images/solr/conf/solrconfig.xml
-	$(CP) dvinstall/update-fields.sh                       			images/solr/scripts/update-fields.sh
 	
+build-dev-dataverse: ## Create the docker image for the dataverse service
+	echo "Building dev Dataverse image '$(DATAVERSE_IMAGE_TAG)'..."
+	sh images/dataverse/build_dev_dv.sh
+	docker build --build-arg DATAVERSE_STOCK_IMAGE_TAG=$(DATAVERSE_STOCK_IMAGE_TAG) -t $(DATAVERSE_IMAGE_TAG) ./images/dataverse
+
 build-dataverse: ## Create the docker image for the dataverse service
 	echo "Building Dataverse image '$(DATAVERSE_IMAGE_TAG)'..."
-	docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
-			--build-arg PAYARA_VERSION=$(PAYARA_VERSION) --build-arg DATAVERSE_VERSION=$(DATAVERSE_VERSION) \
-			-t $(DATAVERSE_IMAGE_TAG) ./images/dataverse
+	sh images/dataverse/build_dv.sh
+	docker build --build-arg DATAVERSE_STOCK_IMAGE_TAG=$(DATAVERSE_STOCK_IMAGE_TAG) -t $(DATAVERSE_IMAGE_TAG) ./images/dataverse
 
 build-index: ## Create the docker image for the index service (Solr)
 	echo "Building Index image '$(SOLR_IMAGE_TAG)'..."
 	docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
 			--build-arg SOLR_VERSION=$(SOLR_VERSION) \
 			-t $(SOLR_IMAGE_TAG) ./images/solr
+
+build-dvsolr: ## Create the docker image for the dvsolr service (Solr)
+	echo "Building dvsolr image '$(DV_SOLR_IMAGE_TAG)'..."
+	docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
+			--build-arg SOLR_VERSION=$(DV_SOLR_VERSION) \
+			-t $(DV_SOLR_IMAGE_TAG) ./images/dvsolr
 
 build-mailcatcher: ## Create the docker image for the mail catcher service
 	echo "Building Mail catcher image '$(MAIL_CATCHER_IMAGE_TAG)'..."
@@ -107,9 +66,13 @@ build-proxy: ## Create the docker image for the Shibboleth Service Provider
 
 push-dataverse: ## Publish the docker image for the dataverse service
 	docker push $(DATAVERSE_IMAGE_TAG)
+	docker push $(DATAVERSE_CONFIG_IMAGE_TAG)
 
 push-index: ## Publish the docker image for the index service (Solr)
 	docker push $(SOLR_IMAGE_TAG)
+
+push-dvsolr: ## Publish the docker image for the dvsolr service (Solr)
+	docker push $(DV_SOLR_IMAGE_TAG)
 
 push-mailcatcher: ## Publish the docker image for the mail catcher service
 	docker push $(MAIL_CATCHER_IMAGE_TAG)
