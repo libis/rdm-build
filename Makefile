@@ -33,7 +33,7 @@ push: push-index push-dvsolr push-mailcatcher push-proxy push-dataverse ## Publi
 # DEVELOPMENT TASKS
 ######################################################################################################################
 	
-build-dev-dataverse: ## Create the docker image for the dataverse service
+build-dev-dataverse: ## Create the docker image for the development dataverse service
 	echo "Building dev Dataverse image '$(DATAVERSE_IMAGE_TAG)'..."
 	sh images/dataverse/build_dev_dv.sh
 	docker build --build-arg DATAVERSE_STOCK_IMAGE_TAG=$(DATAVERSE_STOCK_IMAGE_TAG) -t $(DATAVERSE_IMAGE_TAG) ./images/dataverse

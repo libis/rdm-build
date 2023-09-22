@@ -28,6 +28,8 @@ The actions are enabled with make. The Makefile contains a limited set of target
 
 There are also targets for building and publishing a single image. Use the `help` target to list the other options.
 
+Use the `build-dev-dataverse` target to build a dataverse image from your local source code. Note that the script behind this target assumes that your dataverse project is located in the `../dataverse` directory.
+
 ## Dataverse image
 
 The Dataverse image is almost the same as the stock Dataverse image, with only ruby additionally installed on top of the base image. For the details on the stock Dataverse image, see https://guides.dataverse.org/en/latest/container/index.html
