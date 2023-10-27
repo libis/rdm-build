@@ -6,8 +6,6 @@ This repository contains the data and scripts that are needed to build the image
 We build 5 Docker images with this repository:
 
 - dataverse : the main image that will be able to run the Dataverse application
-- solr : a customized image that runs the covoc Solr index server
-- dvsolr : a customized image that runs the Dataverse Solr index server
 - proxy : an image that provides a reverse proxy in front of all the containers. It will also run the Shibboleth SP server that protects the access to the applications.
 - mailcatcher : an image that behaves as a mail server, but will not forward the emails to the user's mailboxes. Instead all emails are displayed in a web page.
 
@@ -33,16 +31,6 @@ Use the `build-dev-dataverse` target to build a dataverse image from your local 
 ## Dataverse image
 
 The Dataverse image is almost the same as the stock Dataverse image, with only ruby additionally installed on top of the base image. For the details on the stock Dataverse image, see https://guides.dataverse.org/en/latest/container/index.html
-
-## Solr image
-
-The solr image is almost the same as the stock Sorl image, but has some small changes:
-
-- The image will run as a given User ID and Group ID to facilitate backup and restore of the configuration and data
-
-## DVSolr image
-
-The dvsolr image is the same as the stock Sorl image.
 
 ## Proxy image
 
