@@ -48,6 +48,15 @@ build-proxy: ## Create the docker image for the Shibboleth Service Provider
 	docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
 		-t $(PROXY_IMAGE_TAG) ./images/proxy
 
+build-dataverse-globus: ## Create the docker image for dataverse-globus app
+	if [ -d "images/dataverse-globus/git" ]; then echo git pull images/dataverse-globus/git; \
+		else git clone --branch ${DATAVERSE_GLOBUS_VERSION} ${DATAVERSE_GLOBUS_GIT} images/dataverse-globus/git; fi
+	echo "Building dataverse-globus image '$(DATAVERSE_GLOBUS_IMAGE_TAG)'..."
+	docker build --build-arg NODE_VERSION=$(NODE_VERSION) --build-arg NGINX_VERSION=$(NGINX_VERSION) \
+	    --build-arg DATAVERSE_GLOBUS_UI_NAMESPACE=$(DATAVERSE_GLOBUS_UI_NAMESPACE) --build-arg STAGE=$(STAGE) \
+		--build-arg NODE_ENV=$(NODE_ENV) --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
+		-t $(DATAVERSE_GLOBUS_IMAGE_TAG) ./images/dataverse-globus
+
 push-dataverse: ## Publish the docker image for the dataverse service
 	docker push $(DATAVERSE_IMAGE_TAG)
 	docker push $(DATAVERSE_CONFIG_IMAGE_TAG)

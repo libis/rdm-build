@@ -4,3 +4,4 @@ dvinstall.zip
 /dvinstall/*
 !/dvinstall/*.sh
 /images/dataverse/dataverse.war
+/images/dataverse-globus/git

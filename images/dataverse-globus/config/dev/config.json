@@ -1,0 +1,7 @@
+{
+  "baseUrl": "",
+  "id": "",
+  "redirectUploadURL": "http://localhost/upload",
+  "redirectDownloadURL": "http://localhost/download",
+  "globusClientId": "6053c859-0253-4b76-893f-cf50a15ca27c"
+}
