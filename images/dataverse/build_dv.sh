@@ -10,7 +10,7 @@ git cherry-pick 86ad64b33ac55972b9e1180b69b9629db21116bb 3a9568e5a458157dab514e0
 cd ..
 wget -O dataverse/modules/container-base/src/main/docker/Dockerfile https://raw.githubusercontent.com/IQSS/dataverse/develop/modules/container-base/src/main/docker/Dockerfile
 wget -O dataverse/modules/container-base/src/main/docker/scripts/entrypoint.sh https://raw.githubusercontent.com/IQSS/dataverse/develop/modules/container-base/src/main/docker/scripts/entrypoint.sh
-wget -O dataverse/modules/container-base/src/main/docker/scripts/init_1_change_passwords.sh https://raw.githubusercontent.com/IQSS/dataverse/develop/modules/container-base/src/main/docker/scripts/init_1_change_passwords.sh
+cp ../images/dataverse/scripts/init_1_change_passwords.sh dataverse/modules/container-base/src/main/docker/scripts/init_1_change_passwords.sh
 wget -O dataverse/modules/container-base/src/main/docker/scripts/init_1_generate_deploy_commands.sh https://raw.githubusercontent.com/IQSS/dataverse/develop/modules/container-base/src/main/docker/scripts/init_1_generate_deploy_commands.sh
 wget -O dataverse/modules/container-base/src/main/docker/scripts/init_1_generate_devmode_commands.sh https://raw.githubusercontent.com/IQSS/dataverse/develop/modules/container-base/src/main/docker/scripts/init_1_generate_devmode_commands.sh
 wget -O dataverse/modules/container-base/src/main/docker/scripts/removeExpiredCaCerts.sh https://raw.githubusercontent.com/IQSS/dataverse/develop/modules/container-base/src/main/docker/scripts/removeExpiredCaCerts.sh
