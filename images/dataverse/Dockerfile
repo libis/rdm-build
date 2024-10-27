@@ -1,5 +1,5 @@
-ARG PAYARA_VERSION=5.2021.4
-FROM payara/server-full:${PAYARA_VERSION}-jdk17
+ARG BASE_VERSION=unstable
+FROM gdcc/base:${BASE_VERSION}
 
 # The first section requires root privileges
 USER root
@@ -8,7 +8,7 @@ USER root
 RUN apt-get update -qqy; \
     echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections; \
     DEBIAN_FRONTEND=noninteractive apt-get -qq --no-install-recommends install -qqy \
-    jq imagemagick wget curl less unzip postgresql-client ttf-mscorefonts-installer fontconfig ruby; \
+    jq imagemagick wget curl less unzip postgresql-client ttf-mscorefonts-installer fontconfig ruby ed bc sed gawk; \
     rm -rf /var/lib/apt/lists/*
 
 # Change application user and group id
@@ -34,8 +34,8 @@ RUN mkdir -p               ${DATA_DIR} ${DUMPS_DIR} ${UPLOAD_DIR} ${DVINSTALL_DI
 USER payara
 
 # deploy WAR file
-ARG DATAVERSE_VERSION=6.4
-COPY --chown=payara:payara dataverse.war ${DEPLOY_DIR}
+ARG DATAVERSE_WAR_URL=https://github.com/IQSS/dataverse/releases/download/v6.4/dataverse-6.4.war
+ADD --chown=payara:payara ${DATAVERSE_WAR_URL} ${DEPLOY_DIR}
 
 VOLUME ${DOMAIN_DIR}/docroot
 WORKDIR ${DOMAIN_DIR}/docroot

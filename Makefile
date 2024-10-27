@@ -32,16 +32,11 @@ push: push-proxy push-dataverse ## Publish all custom docker images
 
 # DEVELOPMENT TASKS
 ######################################################################################################################
-download_dataverse: ## Download the Dataverse installation package
-	rm -f dataverse.war
-	echo "Downloading Dataverse war file..."
-	wget --quiet -nc -c https://github.com/IQSS/dataverse/releases/download/v$(DATAVERSE_VERSION)/dataverse-$(DATAVERSE_VERSION).war || true
-	mv dataverse-$(DATAVERSE_VERSION).war images/dataverse/dataverse.war
 
 build-dataverse: ## Create the docker image for the dataverse service
 	echo "Building Dataverse image '$(DATAVERSE_IMAGE_TAG)'..."
 	docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
-			--build-arg PAYARA_VERSION=$(PAYARA_VERSION) --build-arg DATAVERSE_VERSION=$(DATAVERSE_VERSION) \
+			--build-arg BASE_VERSION=$(BASE_VERSION) --build-arg DATAVERSE_WAR_URL=$(DATAVERSE_WAR_URL) \
 			-t $(DATAVERSE_IMAGE_TAG) ./images/dataverse
 
 build-proxy: ## Create the docker image for the Shibboleth Service Provider
