@@ -1,4 +1,4 @@
-ARG BASE_VERSION=unstable
+ARG BASE_VERSION=6.5-noble
 FROM gdcc/base:${BASE_VERSION}
 
 # The first section requires root privileges
