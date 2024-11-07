@@ -33,6 +33,14 @@ push: push-proxy push-dataverse ## Publish all custom docker images
 # DEVELOPMENT TASKS
 ######################################################################################################################
 
+build-dev-dataverse: ## Create the docker image for the develop dataverse
+	echo "Building Dataverse war file from source..."
+	cd ../dataverse; mvn -DskipTests=true clean package
+	echo "Building development Dataverse image '$(DATAVERSE_IMAGE_TAG)'..."
+	cd ..; docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
+			--build-arg BASE_VERSION=$(BASE_VERSION) --build-arg DATAVERSE_WAR_URL=dataverse/target/dataverse-$(DATAVERSE_VERSION).war \
+			-t $(DATAVERSE_IMAGE_TAG) --file rdm-build/images/dataverse/Dockerfile .
+
 build-dataverse: ## Create the docker image for the dataverse service
 	echo "Building Dataverse image '$(DATAVERSE_IMAGE_TAG)'..."
 	docker build -q --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) \
