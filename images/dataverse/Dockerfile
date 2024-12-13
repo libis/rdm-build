@@ -34,7 +34,7 @@ RUN mkdir -p               ${DATA_DIR} ${DUMPS_DIR} ${UPLOAD_DIR} ${DVINSTALL_DI
 USER payara
 
 # deploy WAR file
-ARG DATAVERSE_WAR_URL=https://github.com/IQSS/dataverse/releases/download/v6.4/dataverse-6.4.war
+ARG DATAVERSE_WAR_URL=https://github.com/IQSS/dataverse/releases/download/v6.5/dataverse-6.5.war
 ADD --chown=payara:payara ${DATAVERSE_WAR_URL} ${DEPLOY_DIR}
 
 VOLUME ${DOMAIN_DIR}/docroot
