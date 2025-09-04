@@ -21,5 +21,10 @@ for ver in $versions; do
     # ensure the target previewers directory exists and copy only this version to the webroot
     mkdir -p /usr/share/nginx/html/previewers
     cp -r "previewers/${ver}" "/usr/share/nginx/html/previewers/${ver}" 2>/dev/null || true
+    # Minimal patch: enforce forceRangeRequests in zip.js if present
+    zipjs_path="/usr/share/nginx/html/previewers/${ver}/js/zip.js"
+    if [ -f "$zipjs_path" ]; then
+        sed -i 's|const reader = new zip.ZipReader(new zip.HttpRangeReader(fileUrl));|const reader = new zip.ZipReader(new zip.HttpRangeReader(fileUrl, {forceRangeRequests: true}));|' "$zipjs_path" || true
+    fi
 done
 
