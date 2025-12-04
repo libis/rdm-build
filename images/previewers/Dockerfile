@@ -14,6 +14,8 @@ COPY scripts/init.sh /docker-entrypoint.d
 
 WORKDIR /app
 COPY git /app
+COPY dvwebloader /app/dvwebloader
 
 RUN chmod +x /docker-entrypoint.d/init.sh \
-        && chmod +x /app/localinstall.sh
+        && chmod +x /app/localinstall.sh \
+        && chmod +x /app/dvwebloader/localinstall.sh

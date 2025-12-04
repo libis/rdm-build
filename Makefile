@@ -55,7 +55,9 @@ build-proxy: ## Create the docker image for the Shibboleth Service Provider
 build-previewers: ## Create the docker image for previewers
 	if [ -d "images/previewers/git" ]; then pushd images/previewers/git; git checkout ${PREVIEWERS_BRANCH}; git pull; popd; \
 		else git clone ${PREVIEWERS_GIT} images/previewers/git; pushd images/previewers/git; git checkout ${PREVIEWERS_BRANCH}; popd; fi
-	echo "Building priviewers image '$(PREVIEWERS_IMAGE_TAG)'..."
+	if [ -d "images/previewers/dvwebloader" ]; then pushd images/previewers/dvwebloader; git pull; popd; \
+		else git clone https://github.com/libis/dvwebloader.git images/previewers/dvwebloader; fi
+	echo "Building previewers image '$(PREVIEWERS_IMAGE_TAG)'..."
 	docker build -t $(PREVIEWERS_IMAGE_TAG) ./images/previewers
 
 push-dataverse: ## Publish the docker image for the dataverse service

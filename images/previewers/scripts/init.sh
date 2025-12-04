@@ -21,6 +21,24 @@ cd /app
 # Split VERSIONS on commas and/or spaces and iterate
 # Accepts values like: "v1.3,v1.4" or "v1.3 v1.4" or mixed
 versions="${VERSIONS//,/ }"
+
+# Install dvwebloader
+echo "Installing dvwebloader..."
+if [ -d "/app/dvwebloader/src" ]; then
+    cd /app/dvwebloader/src
+    # Run localinstall.sh from src dir (it expects *.html in cwd)
+    bash /app/dvwebloader/localinstall.sh || echo "[WARN] dvwebloader localinstall.sh had issues, continuing..."
+    # Copy all built assets to webroot
+    mkdir -p /usr/share/nginx/html/dvwebloader
+    cp -r ./* /usr/share/nginx/html/dvwebloader/ 2>/dev/null || true
+    # Debug: list what was installed
+    echo "dvwebloader installed to /usr/share/nginx/html/dvwebloader"
+    ls -la /usr/share/nginx/html/dvwebloader/
+    ls -la /usr/share/nginx/html/dvwebloader/lib/ 2>/dev/null || echo "[INFO] No lib/ directory created"
+else
+    echo "[WARN] dvwebloader source not found at /app/dvwebloader/src"
+fi
+cd /app
 for ver in $versions; do
     # trim surrounding whitespace
     ver="$(echo "$ver" | xargs)"
