@@ -16,6 +16,9 @@ WORKDIR /app
 COPY git /app
 COPY dvwebloader /app/dvwebloader
 
+# Copy DVWebloader V2 bundle (built dist only, not node_modules)
+COPY dvwebloader-v2/dist /app/dvwebloader-v2/dist
+
 RUN chmod +x /docker-entrypoint.d/init.sh \
         && chmod +x /app/localinstall.sh \
         && chmod +x /app/dvwebloader/localinstall.sh

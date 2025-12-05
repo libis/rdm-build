@@ -38,6 +38,18 @@ if [ -d "/app/dvwebloader/src" ]; then
 else
     echo "[WARN] dvwebloader source not found at /app/dvwebloader/src"
 fi
+
+# Install DVWebloader V2 (React-based)
+echo "Installing DVWebloader V2..."
+if [ -d "/app/dvwebloader-v2/dist" ]; then
+    # Copy V2 bundle (from dist/) to webroot alongside V1
+    cp -r /app/dvwebloader-v2/dist/* /usr/share/nginx/html/dvwebloader/ 2>/dev/null || true
+    echo "DVWebloader V2 installed to /usr/share/nginx/html/dvwebloader"
+    ls -la /usr/share/nginx/html/dvwebloader/
+else
+    echo "[INFO] DVWebloader V2 bundle not found at /app/dvwebloader-v2/dist, skipping"
+fi
+
 cd /app
 for ver in $versions; do
     # trim surrounding whitespace

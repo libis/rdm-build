@@ -1,0 +1,40 @@
+{
+  "name": "dvwebloader-v2",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Standalone DVWebloader V2 - File uploader for Dataverse using React",
+  "scripts": {
+    "build": "vite build",
+    "build:all": "npm run build && cp -r locales dist/",
+    "preview": "vite preview --port 5173",
+    "dev": "vite --port 5173"
+  },
+  "dependencies": {
+    "@iqss/dataverse-client-javascript": "file:../../../../dataverse-client-javascript",
+    "@iqss/dataverse-design-system": "file:../../../../dataverse-frontend/packages/design-system",
+    "async-mutex": "0.5.0",
+    "axios": "1.12.2",
+    "bootstrap": "5.2.3",
+    "classnames": "2.5.1",
+    "i18next": "25.6.0",
+    "i18next-http-backend": "3.0.2",
+    "js-md5": "0.8.3",
+    "react": "18.2.0",
+    "react-bootstrap": "2.7.2",
+    "react-bootstrap-icons": "1.11.4",
+    "react-dom": "18.2.0",
+    "react-hook-form": "7.51.2",
+    "react-i18next": "16.2.0",
+    "react-toastify": "11.0.2"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@types/react": "18.0.27",
+    "@types/react-dom": "18.0.10",
+    "@vitejs/plugin-react": "4.3.1",
+    "sass": "1.58.1",
+    "typescript": "5.7.2",
+    "vite": "5.4.20",
+    "vite-plugin-css-injected-by-js": "3.1.1"
+  }
+}
