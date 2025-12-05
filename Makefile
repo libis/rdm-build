@@ -64,6 +64,7 @@ build-previewers: ## Create the docker image for previewers
 		echo "  Building DVWebloader V2 bundle..."; \
 		cd ../rdm-build/images/previewers/dvwebloader-v2 && rm -rf dist && npm install --ignore-scripts && npm run build && \
 		cp dvwebloaderV2.html dist/ && \
+		cp embeddedDvWebloader.html dist/ && \
 		cp -r ../../../../dataverse-frontend/public/locales dist/; \
 	else \
 		echo "[WARN] dataverse-frontend or dataverse-client-javascript not found, skipping DVWebloader V2 build"; \
