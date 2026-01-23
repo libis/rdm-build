@@ -19,6 +19,9 @@ COPY dvwebloader /app/dvwebloader
 # Copy DVWebloader V2 bundle (built dist only, not node_modules)
 COPY dvwebloader-v2/dist /app/dvwebloader-v2/dist
 
+# Copy CDI Viewer (for DDI-CDI JSON-LD files)
+COPY cdi-viewer /app/cdi-viewer
+
 RUN chmod +x /docker-entrypoint.d/init.sh \
         && chmod +x /app/localinstall.sh \
         && chmod +x /app/dvwebloader/localinstall.sh

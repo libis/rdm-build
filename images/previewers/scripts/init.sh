@@ -50,6 +50,21 @@ else
     echo "[INFO] DVWebloader V2 bundle not found at /app/dvwebloader-v2/dist, skipping"
 fi
 
+# Install CDI Viewer (DDI-CDI JSON-LD editor/viewer)
+echo "Installing CDI Viewer..."
+if [ -d "/app/cdi-viewer" ]; then
+    mkdir -p /usr/share/nginx/html/previewers/cdi-viewer
+    cp -r /app/cdi-viewer/* /usr/share/nginx/html/previewers/cdi-viewer/ 2>/dev/null || true
+    # Remove unnecessary files (git, tests, node_modules)
+    rm -rf /usr/share/nginx/html/previewers/cdi-viewer/.git 2>/dev/null || true
+    rm -rf /usr/share/nginx/html/previewers/cdi-viewer/node_modules 2>/dev/null || true
+    rm -rf /usr/share/nginx/html/previewers/cdi-viewer/tests 2>/dev/null || true
+    echo "CDI Viewer installed to /usr/share/nginx/html/previewers/cdi-viewer"
+    ls -la /usr/share/nginx/html/previewers/cdi-viewer/
+else
+    echo "[INFO] CDI Viewer not found at /app/cdi-viewer, skipping"
+fi
+
 cd /app
 for ver in $versions; do
     # trim surrounding whitespace

@@ -1,4 +1,4 @@
-STAGE ?= dev
+STAGE ?= prod
 
 include env.$(STAGE)
 export
@@ -57,6 +57,10 @@ build-previewers: ## Create the docker image for previewers
 		else git clone ${PREVIEWERS_GIT} images/previewers/git; pushd images/previewers/git; git checkout ${PREVIEWERS_BRANCH}; popd; fi
 	if [ -d "images/previewers/dvwebloader" ]; then pushd images/previewers/dvwebloader; git pull; popd; \
 		else git clone https://github.com/libis/dvwebloader.git images/previewers/dvwebloader; fi
+	if [ -d "images/previewers/cdi-viewer" ]; then pushd images/previewers/cdi-viewer; git pull; popd; \
+		else git clone https://github.com/libis/cdi-viewer.git images/previewers/cdi-viewer; fi
+	echo "Building CDI Viewer bundle..."
+	cd images/previewers/cdi-viewer && npm install --ignore-scripts && npm run build
 	echo "Building DVWebloader V2 bundle..."
 	if [ -d "../dataverse-frontend" ] && [ -d "../dataverse-client-javascript" ]; then \
 		echo "  Building dataverse-client-javascript..."; \
