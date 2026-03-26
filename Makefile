@@ -61,18 +61,8 @@ build-previewers: ## Create the docker image for previewers
 		else git clone https://github.com/libis/cdi-viewer.git images/previewers/cdi-viewer; fi
 	echo "Building CDI Viewer bundle..."
 	cd images/previewers/cdi-viewer && npm install --ignore-scripts && npm run build
-	echo "Building DVWebloader V2 bundle..."
-	if [ -d "../dataverse-frontend" ] && [ -d "../dataverse-client-javascript" ]; then \
-		echo "  Building dataverse-client-javascript..."; \
-		cd ../dataverse-client-javascript && npm install --ignore-scripts && npm run build && \
-		echo "  Building DVWebloader V2 bundle..."; \
-		cd ../rdm-build/images/previewers/dvwebloader-v2 && rm -rf dist && npm install --ignore-scripts && npm run build && \
-		cp dvwebloaderV2.html dist/ && \
-		cp embeddedDvWebloader.html dist/ && \
-		cp -r ../../../../dataverse-frontend/public/locales dist/; \
-	else \
-		echo "[WARN] dataverse-frontend or dataverse-client-javascript not found, skipping DVWebloader V2 build"; \
-	fi
+	cp images/previewers/dvwebloader-v2/dvwebloaderV2.html images/previewers/dvwebloader-v2/dist/
+	cp images/previewers/dvwebloader-v2/embeddedDvWebloader.html images/previewers/dvwebloader-v2/dist/
 	echo "Building previewers image '$(PREVIEWERS_IMAGE_TAG)'..."
 	docker build --no-cache -t $(PREVIEWERS_IMAGE_TAG) ./images/previewers
 
