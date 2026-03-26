@@ -4,13 +4,13 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Dataverse WebLoader V2</title>
-        <!-- Configuration: set before the bundle loads -->
+        <!-- DVWebloader V2 Configuration - set before bundle loads -->
         <script>
             window.dvWebloaderConfig = {
-                useS3Tagging: false,     // Disable S3 tagging (for MinIO/S3-compatible storage)
-                maxRetries: 3,           // Retry multipart uploads up to 3 times
-                uploadTimeoutMs: 0,      // No timeout (0 = unlimited)
-                disableMD5Checksum: false // Calculate MD5 checksums
+                useS3Tagging: false,  // Disabled for s3 compatibility
+                maxRetries: 3,
+                uploadTimeoutMs: 300000,
+                disableMD5Checksum: false
             };
         </script>
         <style>
