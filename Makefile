@@ -61,8 +61,6 @@ build-previewers: ## Create the docker image for previewers
 		else git clone https://github.com/libis/cdi-viewer.git images/previewers/cdi-viewer; fi
 	echo "Building CDI Viewer bundle..."
 	cd images/previewers/cdi-viewer && npm install --ignore-scripts && npm run build
-	cp images/previewers/dvwebloader-v2/dvwebloaderV2.html images/previewers/dvwebloader-v2/dist/
-	cp images/previewers/dvwebloader-v2/embeddedDvWebloader.html images/previewers/dvwebloader-v2/dist/
 	echo "Building previewers image '$(PREVIEWERS_IMAGE_TAG)'..."
 	docker build --no-cache -t $(PREVIEWERS_IMAGE_TAG) ./images/previewers
 

@@ -1,4 +1,6 @@
 .*.swp
 images/previewers/git
 images/previewers/dvwebloader
-images/previewers/dvwebloader-v2/node_modules
+images/previewers/cdi-viewer
+images/previewers/dvwebloader-v2/*
+!images/previewers/dvwebloader-v2/dist
