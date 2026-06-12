@@ -4,8 +4,12 @@ echo "Waiting for web server to start"
 s6-svwait -u /var/run/s6/services/httpd
 
 echo "Starting shibboleth"
+# Newer shibboleth RPMs (3.5.x) create the runtime directory via
+# systemd-tmpfiles, which never runs in a container: without it shibd cannot
+# bind shibd.sock ("failed socket call (bind), result (2)") and every
+# /Shibboleth.sso/* handler errors.
+[ -d /var/run/shibboleth ] || mkdir -p /var/run/shibboleth
 # shibd -fF -u nginx -g nginx
 # pidfile=/var/run/shibboleth/shibd.pid
-# [ -d /var/run/shibboleth ] || mkdir /var/run/shibboleth
 # shibd -F
 shibd -u root -g root -fF -c /etc/shibboleth/shibboleth2.xml -w 10
