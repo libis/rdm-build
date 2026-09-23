@@ -1,0 +1,2 @@
+# Dataverse checkout of build-patched-dataverse; only its war (copied next to the Dockerfile) goes into the image
+git

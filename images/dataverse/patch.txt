@@ -1,0 +1,6 @@
+# Commits of https://github.com/IQSS/dataverse cherry-picked onto v$(DATAVERSE_VERSION) by
+# "make build-patched-dataverse", in this order. One commit hash per line; "#" starts a comment.
+
+# File page slow for datasets with many files: https://github.com/IQSS/dataverse/pull/12740
+e5b7afe30d5ea30136da5b06939913f159a1be18
+7977d5a520905e7f2b9c97b3f109f2613250b55d

@@ -1,4 +1,6 @@
 .*.swp
+images/dataverse/git
+images/dataverse/*.war
 images/previewers/git
 images/previewers/dvwebloader
 images/previewers/cdi-viewer
