@@ -48,6 +48,8 @@ build-dataverse: ## Create the docker image for the dataverse service
 			-t $(DATAVERSE_IMAGE_TAG) ./images/dataverse
 
 DATAVERSE_GIT ?= https://github.com/IQSS/dataverse.git
+# where to fetch the commits of patch.txt from; a local checkout, to test commits that are not pushed yet
+PATCH_SOURCE ?= origin
 PATCHED_DIR = images/dataverse/git
 
 build-patched-dataverse: ## Create the dataverse image from v$(DATAVERSE_VERSION) with the commits of images/dataverse/patch.txt
@@ -59,7 +61,7 @@ build-patched-dataverse: ## Create the dataverse image from v$(DATAVERSE_VERSION
 	git -C $(PATCHED_DIR) clean -q -fdx
 	commits=$$(sed -e 's/#.*//' images/dataverse/patch.txt | xargs); \
 		echo "Cherry-picking $$commits..."; \
-		git -C $(PATCHED_DIR) fetch -q origin $$commits && \
+		git -C $(PATCHED_DIR) fetch -q $(PATCH_SOURCE) $$commits && \
 		git -C $(PATCHED_DIR) cherry-pick --no-commit $$commits && \
 		echo "build.number=patched" > $(PATCHED_DIR)/src/main/java/BuildNumber.properties
 	echo "Building Dataverse war file..."
