@@ -28,7 +28,7 @@ There are also targets for building and publishing a single image. Use the `help
 
 Use the `build-dev-dataverse` target to build a dataverse image from your local source code. Note that the script behind this target assumes that your dataverse project is located in the `../dataverse` directory.
 
-Use `build-patched-dataverse` to build the released version (`DATAVERSE_VERSION`) with fixes that are not released yet. It checks out that version in `images/dataverse/git`, cherry-picks the commits listed in `images/dataverse/patch.txt`, builds the war and tags the image with a `_patched` suffix, so the released image is not overwritten. Publish it with `push-patched-dataverse`. The build number of the war (shown next to the version) lists the cherry-picked commits.
+Use `build-patched-dataverse` to build the released version (`DATAVERSE_VERSION`) with fixes that are not released yet. It checks out that version in `images/dataverse/git`, cherry-picks the commits listed in `images/dataverse/patch.txt`, builds the war and tags the image with a `_patched` suffix, so the released image is not overwritten. Publish it with `push-patched-dataverse`. The footer then shows the version as `v. 6.7.1 build patched`; which commits went in is in the history of `patch.txt`.
 
 ## Dataverse image
 

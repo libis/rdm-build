@@ -61,7 +61,7 @@ build-patched-dataverse: ## Create the dataverse image from v$(DATAVERSE_VERSION
 		echo "Cherry-picking $$commits..."; \
 		git -C $(PATCHED_DIR) fetch -q origin $$commits && \
 		git -C $(PATCHED_DIR) cherry-pick --no-commit $$commits && \
-		echo "build.number=patched-$$(for c in $$commits; do printf '%.7s\n' $$c; done | paste -sd-)" > $(PATCHED_DIR)/src/main/java/BuildNumber.properties
+		echo "build.number=patched" > $(PATCHED_DIR)/src/main/java/BuildNumber.properties
 	echo "Building Dataverse war file..."
 	cd $(PATCHED_DIR) && mvn -q -Dmaven.test.skip=true clean package
 	cp $(PATCHED_DIR)/target/dataverse-$(DATAVERSE_VERSION).war images/dataverse/
